@@ -4,4 +4,5 @@ export default {
     file: 'lib/index.js',
     format: 'cjs',
   },
+  external: ['fft.js', 'next-pow-2'],
 };
