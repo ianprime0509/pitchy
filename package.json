@@ -1,0 +1,45 @@
+{
+  "name": "pitchy",
+  "version": "0.1.0",
+  "description": "A simple pitch detection library.",
+  "main": "lib/index.js",
+  "module": "src/index.js",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "prepare": "rollup -c",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ianprime0509/pitchy.git"
+  },
+  "keywords": [
+    "pitch",
+    "detection",
+    "music",
+    "dsp"
+  ],
+  "author": "Ian Johnson <ianprime0509@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ianprime0509/pitchy/issues"
+  },
+  "homepage": "https://github.com/ianprime0509/pitchy#readme",
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "dependencies": {
+    "fft.js": "^4.0.3",
+    "next-pow-2": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "jest": "^22.2.2",
+    "jest-matcher-deep-close-to": "^1.1.0",
+    "jest-matcher-percent-error": "^0.1.0",
+    "rollup": "^0.55.5"
+  }
+}
