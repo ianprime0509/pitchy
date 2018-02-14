@@ -39,7 +39,7 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
     "jest": "^22.2.2",
     "jest-matcher-deep-close-to": "^1.1.0",
-    "jest-matcher-percent-error": "^0.1.0",
+    "jest-matcher-percent-error": "^1.0.0",
     "rollup": "^0.55.5"
   }
 }
