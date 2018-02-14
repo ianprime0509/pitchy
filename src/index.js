@@ -134,7 +134,7 @@ function getKeyMaximumIndices(input) {
  * @return {[number, number]} The detected pitch, in Hz, followed by the
  * clarity.
  */
-export function mpm(input, sampleRate) {
+export function findPitch(input, sampleRate) {
   const ndsfArray = ndsf(input);
   const keyMaximumIndices = getKeyMaximumIndices(ndsfArray);
   // The constant k mentioned in section 5.  TODO: make this configurable.

@@ -19,24 +19,24 @@ $ npm install pitchy
 
 ## Usage
 
-The primary function of this module is `mpm(input, sampleRate)`.  The first
-argument, `input`, is an array of numbers containing the time-domain amplitudes
-of the input signal.  The second argument, `sampleRate`, is the sample rate at
-which the input data was collected.  The return value is an array of two
-numbers: the first number is the detected pitch, and the second number is a
-measure of "clarity" or confidence (between 0 and 1, with 1 being the most
-clear).
+The primary function of this module is `findPitch(input, sampleRate)`.  The
+first argument, `input`, is an array of numbers containing the time-domain
+amplitudes of the input signal.  The second argument, `sampleRate`, is the
+sample rate at which the input data was collected.  The return value is an
+array of two numbers: the first number is the detected pitch, and the second
+number is a measure of "clarity" or confidence (between 0 and 1, with 1 being
+the most clear).
 
-The following is a simple example showing how you might use the `mpm` function
-alongside the WebRTC API to implement a very basic tuner.
+The following is a simple example showing how you might use the `findPitch`
+function alongside the WebRTC API to implement a very basic tuner.
 
 ```javascript
-import { mpm } from 'pitchy';
+import { findPitch } from 'pitchy';
 
 function updatePitch(analyserNode, sampleRate) {
   let data = new Float32Array(analyserNode.fftSize);
   analyserNode.getFloatTimeDomainData(data);
-  let [pitch, clarity] = mpm(data, sampleRate);
+  let [pitch, clarity] = findPitch(data, sampleRate);
 
   document.getElementById('pitch').textContent = String(pitch);
   document.getElementById('clarity').textContent = String(clarity);
