@@ -4,10 +4,7 @@
   "description": "A simple pitch detection library.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
-  "files": [
-    "lib",
-    "src"
-  ],
+  "files": ["lib", "src"],
   "scripts": {
     "prepare": "rollup -c",
     "test": "jest"
@@ -16,12 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/ianprime0509/pitchy.git"
   },
-  "keywords": [
-    "pitch",
-    "detection",
-    "music",
-    "dsp"
-  ],
+  "keywords": ["pitch", "detection", "music", "dsp"],
   "author": "Ian Johnson <ianprime0509@gmail.com>",
   "license": "MIT",
   "bugs": {
