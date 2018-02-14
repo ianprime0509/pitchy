@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "description": "A simple pitch detection library.",
   "main": "lib/index.js",
-  "module": "src/index.js",
+  "module": "lib/index.mjs",
   "files": [
     "lib",
     "src"

@@ -7,6 +7,7 @@ and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Transpile ES module output to ES5 as well (`index.mjs`).
 
 ## [1.0.1] - 2018-02-14
 ### Changed
