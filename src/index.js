@@ -5,8 +5,8 @@
  * license can be found in the LICENSE file in the project root, or at
  * https://opensource.org/licenses/MIT.
  */
-import FFT from 'fft.js';
-import np2 from 'next-pow-2';
+import FFT from "fft.js";
+import np2 from "next-pow-2";
 
 /**
  * Return an array containing the autocorrelated input data.
@@ -66,13 +66,21 @@ function ndsf(input) {
   //
   // The resulting array values are 2 * r'(tau) / m'(tau).
   let m = 2 * rPrimeArray[0];
-  return rPrimeArray.map((rPrime, i) => {
-    let mPrime = m;
-    let i2 = input.length - i - 1;
-    m -= input[i] * input[i] + input[i2] * input[i2];
+  if (m === 0) {
+    // We don't want to trigger any divisions by zero; if the given input data
+    // consists of all zeroes, then so should the output data.
+    let result = new Array(rPrimeArray.length);
+    result.fill(0);
+    return result;
+  } else {
+    return rPrimeArray.map((rPrime, i) => {
+      let mPrime = m;
+      let i2 = input.length - i - 1;
+      m -= input[i] * input[i] + input[i2] * input[i2];
 
-    return 2 * rPrime / mPrime;
-  });
+      return 2 * rPrime / mPrime;
+    });
+  }
 }
 
 /**
@@ -137,6 +145,11 @@ function getKeyMaximumIndices(input) {
 export function findPitch(input, sampleRate) {
   const ndsfArray = ndsf(input);
   const keyMaximumIndices = getKeyMaximumIndices(ndsfArray);
+  if (keyMaximumIndices.length === 0) {
+    // No key maxima means that we either don't have enough data to analyze or
+    // that the data was flawed (such as an input array of zeroes).
+    return [0, 0];
+  }
   // The constant k mentioned in section 5.  TODO: make this configurable.
   const K = 0.9;
   // The highest key maximum.
