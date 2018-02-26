@@ -1,7 +1,7 @@
 # pitchy
 
-[![npm](https://img.shields.io/npm/v/pitchy.svg)]()
-[![Travis](https://img.shields.io/travis/ianprime0509/pitchy.svg)]()
+[![npm](https://img.shields.io/npm/v/pitchy.svg)](https://www.npmjs.com/package/pitchy)
+[![Travis](https://img.shields.io/travis/ianprime0509/pitchy.svg)](https://travis-ci.org/ianprime0509/pitchy)
 
 pitchy is a simple pitch-detection library written entirely in JavaScript that
 aims to be fast and accurate enough to be used in real-time applications such
