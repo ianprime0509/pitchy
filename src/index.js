@@ -5,8 +5,8 @@
  * license can be found in the LICENSE file in the project root, or at
  * https://opensource.org/licenses/MIT.
  */
-import FFT from "fft.js";
-import np2 from "next-pow-2";
+import FFT from 'fft.js';
+import np2 from 'next-pow-2';
 
 /**
  * Return an array containing the autocorrelated input data.

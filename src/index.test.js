@@ -5,15 +5,15 @@
  * license can be found in the LICENSE file in the project root, or at
  * https://opensource.org/licenses/MIT.
  */
-import { autocorrelate, findPitch } from ".";
+import { autocorrelate, findPitch } from '.';
 
-import { toBeDeepCloseTo } from "jest-matcher-deep-close-to";
-import toBeWithinPercent from "jest-matcher-percent-error";
+import { toBeDeepCloseTo } from 'jest-matcher-deep-close-to';
+import toBeWithinPercent from 'jest-matcher-percent-error';
 
 expect.extend({ toBeDeepCloseTo, toBeWithinPercent });
 
-describe("autocorrelate()", () => {
-  test("computes the autocorrelation of small datasets", () => {
+describe('autocorrelate()', () => {
+  test('computes the autocorrelation of small datasets', () => {
     expect(autocorrelate([1, -1])).toBeDeepCloseTo([2, -1], 8);
     expect(autocorrelate([1, 2, 1])).toBeDeepCloseTo([6, 4, 1], 8);
     expect(autocorrelate([1, 0, 1, 0])).toBeDeepCloseTo([2, 0, 1, 0], 8);
@@ -24,17 +24,17 @@ describe("autocorrelate()", () => {
     );
   });
 
-  test("operates correctly on a Float32Array", () => {
+  test('operates correctly on a Float32Array', () => {
     expect(autocorrelate(Float32Array.of(1, 1))).toBeDeepCloseTo([2, 1], 8);
   });
 
-  test("operates correctly on a Float64Array", () => {
+  test('operates correctly on a Float64Array', () => {
     expect(autocorrelate(Float64Array.of(1, 1))).toBeDeepCloseTo([2, 1], 8);
   });
 });
 
-describe("findPitch()", () => {
-  test("finds the pitch of a sine wave to within 1% error", () => {
+describe('findPitch()', () => {
+  test('finds the pitch of a sine wave to within 1% error', () => {
     expect(findPitch(sineWave(1000, 440, 44100), 44100)[0]).toBeWithinPercent(
       440,
       1
@@ -53,7 +53,7 @@ describe("findPitch()", () => {
     );
   });
 
-  test("finds at least a clarity of 0.99 when given a sine wave", () => {
+  test('finds at least a clarity of 0.99 when given a sine wave', () => {
     expect(findPitch(sineWave(1000, 440, 44100), 44100)[1]).toBeGreaterThan(
       0.99
     );
@@ -68,7 +68,7 @@ describe("findPitch()", () => {
     );
   });
 
-  test("returns a confidence of 0 when given an array of zeroes", () => {
+  test('returns a confidence of 0 when given an array of zeroes', () => {
     let zeroes = new Array(1000);
     zeroes.fill(0);
     expect(findPitch(zeroes, 44100)[1]).toBe(0);
