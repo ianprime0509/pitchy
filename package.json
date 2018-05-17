@@ -42,7 +42,7 @@
     "babel-preset-env": "^1.6.1",
     "jest": "^22.2.2",
     "jest-matcher-deep-close-to": "^1.1.0",
-    "jest-matcher-percent-error": "^1.0.0",
+    "jest-matcher-percent-error": "^1.0.1",
     "prettier": "^1.10.2",
     "rollup": "^0.59.1",
     "rollup-plugin-babel": "^3.0.3"

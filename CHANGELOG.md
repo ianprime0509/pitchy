@@ -8,6 +8,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.4] - 2018-05-17
+- Update dependencies
+
 ## [1.0.3] - 2018-02-26
 - Fix behavior of `findPitch` when given an array of all zeroes.
 
