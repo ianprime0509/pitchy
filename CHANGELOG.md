@@ -7,14 +7,19 @@ and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Update dependencies
 
 ## [1.0.4] - 2018-05-17
+### Changed
 - Update dependencies
 
 ## [1.0.3] - 2018-02-26
+### Fixed
 - Fix behavior of `findPitch` when given an array of all zeroes.
 
 ## [1.0.2] - 2018-02-14
+### Added
 - Transpile ES module output to ES5 as well (`index.mjs`).
 
 ## [1.0.1] - 2018-02-14
