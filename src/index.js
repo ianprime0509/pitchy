@@ -78,7 +78,7 @@ function ndsf(input) {
       let i2 = input.length - i - 1;
       m -= input[i] * input[i] + input[i2] * input[i2];
 
-      return 2 * rPrime / mPrime;
+      return (2 * rPrime) / mPrime;
     });
   }
 }
@@ -153,10 +153,10 @@ export function findPitch(input, sampleRate) {
   // The constant k mentioned in section 5.  TODO: make this configurable.
   const K = 0.9;
   // The highest key maximum.
-  const nMax = Math.max(...keyMaximumIndices.map(i => ndsfArray[i]));
+  const nMax = Math.max(...keyMaximumIndices.map((i) => ndsfArray[i]));
   // Following the paper, we return the pitch corresponding to the first key
   // maximum higher than K * nMax.
-  const resultIndex = keyMaximumIndices.find(i => ndsfArray[i] >= K * nMax);
+  const resultIndex = keyMaximumIndices.find((i) => ndsfArray[i] >= K * nMax);
 
   return [sampleRate / resultIndex, ndsfArray[resultIndex]];
 }
