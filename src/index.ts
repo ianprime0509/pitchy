@@ -44,6 +44,11 @@ export class Autocorrelator<T extends Buffer<number>> {
     );
   }
 
+  /**
+   * A helper method to create an {@link Autocorrelator} using {@link Float64Array} buffers.
+   *
+   * @param inputLength - the input array length to support
+   */
   static forFloat64Array(inputLength: number): Autocorrelator<Float64Array> {
     return new Autocorrelator(
       inputLength,
@@ -51,6 +56,11 @@ export class Autocorrelator<T extends Buffer<number>> {
     );
   }
 
+  /**
+   * A helper method to create an {@link Autocorrelator} using `number[]` buffers.
+   *
+   * @param inputLength - the input array length to support
+   */
   static forNumberArray(inputLength: number): Autocorrelator<number[]> {
     return new Autocorrelator(inputLength, (length) => Array(length));
   }
@@ -137,41 +147,6 @@ export class Autocorrelator<T extends Buffer<number>> {
 }
 
 /**
- * Returns an array containing the computed values of the NDSF used in MPM.
- *
- * Specifically, this is equation (9) in the McLeod pitch method paper.
- */
-function ndsf(input: ArrayLike<number>): number[] {
-  // The function r'(tau) is the autocorrelation.
-  const autocorrelator = Autocorrelator.forNumberArray(input.length);
-  const rPrimeArray = autocorrelator.autocorrelate(input);
-  // The function m'(tau) (defined in equation (6)) can be computed starting
-  // with m'(0), which is equal to 2r'(0), and then iteratively modified to get
-  // m'(1), m'(2), etc. For example, to get m'(1), we take m'(0) and subtract
-  // x_0^2 and x_{W-1}^2.  Then, to get m'(2), we take m'(1) and subtract x_1^2
-  // and x_{W-2}^2, and further values are similar.  We use m below as this
-  // value.
-  //
-  // The resulting array values are 2 * r'(tau) / m'(tau).
-  let m = 2 * rPrimeArray[0];
-  if (m === 0) {
-    // We don't want to trigger any divisions by zero; if the given input data
-    // consists of all zeroes, then so should the output data
-    const result = new Array(rPrimeArray.length);
-    result.fill(0);
-    return result;
-  } else {
-    return rPrimeArray.map((rPrime, i) => {
-      const mPrime = m;
-      const i2 = input.length - i - 1;
-      m -= input[i] * input[i] + input[i2] * input[i2];
-
-      return (2 * rPrime) / mPrime;
-    });
-  }
-}
-
-/**
  * Returns an array of all the key maximum positions in the given input array.
  *
  * In McLeod's paper, a key maximum is the highest maximum between a positively
@@ -180,6 +155,10 @@ function ndsf(input: ArrayLike<number>): number[] {
  * TODO: the paper by McLeod proposes doing parabolic interpolation to get more
  * accurate key maxima; right now this implementation doesn't do that, but it
  * could be implemented later.
+ *
+ * TODO: it may be more efficient not to construct a new output array each time,
+ * but that would also make the code more complicated (more so than the changes
+ * that were needed to remove the other allocations).
  */
 function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
   // The indices of the key maxima
@@ -214,44 +193,136 @@ function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
 }
 
 /**
- * Returns the pitch detected using McLeod Pitch Method (MPM) along with a
- * measure of its clarity.
+ * A class that can detect the pitch of a note from a time-domain input array.
  *
- * The clarity is a value between 0 and 1 (potentially inclusive) that
- * represents how "clear" the pitch was. A clarity value of 1 indicates that the
- * pitch was very distinct, while lower clarity values indicate less definite
- * pitches.
- *
- * MPM is described in the paper 'A Smarter Way to Find Pitch' by Philip McLeod
- * and Geoff Wyvill
+ * This class uses the McLeod pitch method (MPM) to detect pitches. MPM is
+ * described in the paper 'A Smarter Way to Find Pitch' by Philip McLeod and
+ * Geoff Wyvill
  * (http://miracle.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf).
  *
- * @param input - the time-domain input data
- * @param sampleRate - the sample rate at which the input data was collected
- * @returns the detected pitch, in Hz, followed by the clarity
+ * The class holds internal buffers so that a minimal number of additional
+ * allocations are necessary while performing the operation.
+ *
+ * @typeParam T - the buffer type to use internally. Inputs to the
+ * pitch-detection process can be any numeric array type.
  */
-export function findPitch(
-  input: ArrayLike<number>,
-  sampleRate: number
-): [number, number] {
-  const ndsfArray = ndsf(input);
-  const keyMaximumIndices = getKeyMaximumIndices(ndsfArray);
-  if (keyMaximumIndices.length === 0) {
-    // No key maxima means that we either don't have enough data to analyze or
-    // that the data was flawed (such as an input array of zeroes)
-    return [0, 0];
-  }
-  // The constant k mentioned in section 5
-  // TODO: make this configurable
-  const K = 0.9;
-  // The highest key maximum
-  const nMax = Math.max(...keyMaximumIndices.map((i) => ndsfArray[i]));
-  // Following the paper, we return the pitch corresponding to the first key
-  // maximum higher than K * nMax. This is guaranteed not to be undefined, since
-  // we know of at least one key maximum satisfying this condition (whichever
-  // key maximum gave us nMax).
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const resultIndex = keyMaximumIndices.find((i) => ndsfArray[i] >= K * nMax)!;
+export class PitchDetector<T extends Buffer<number>> {
+  private _autocorrelator: Autocorrelator<T>;
+  private _ndsfBuffer: T;
+  // TODO: it might be nice if this were configurable
+  private readonly _clarityThreshold = 0.9;
 
-  return [sampleRate / resultIndex, ndsfArray[resultIndex]];
+  /**
+   * A helper method to create an {@link PitchDetector} using {@link Float32Array} buffers.
+   *
+   * @param inputLength - the input array length to support
+   */
+  static forFloat32Array(inputLength: number): PitchDetector<Float32Array> {
+    return new PitchDetector(inputLength, (length) => new Float32Array(length));
+  }
+
+  /**
+   * A helper method to create an {@link PitchDetector} using {@link Float64Array} buffers.
+   *
+   * @param inputLength - the input array length to support
+   */
+  static forFloat64Array(inputLength: number): PitchDetector<Float64Array> {
+    return new PitchDetector(inputLength, (length) => new Float64Array(length));
+  }
+
+  /**
+   * A helper method to create an {@link PitchDetector} using `number[]` buffers.
+   *
+   * @param inputLength - the input array length to support
+   */
+  static forNumberArray(inputLength: number): PitchDetector<number[]> {
+    return new PitchDetector(inputLength, (length) => Array(length));
+  }
+
+  /**
+   * Constructs a new {@link PitchDetector} able to handle input arrays of the
+   * given length.
+   *
+   * @param inputLength - the input array length to support. This
+   * `PitchDetector` will only support operation on arrays of this length.
+   * @param bufferSupplier - the function to use for creating buffers, accepting
+   * the length of the buffer to create and returning a new buffer of that
+   * length. The values of the returned buffer need not be initialized in any
+   * particular way.
+   */
+  constructor(inputLength: number, bufferSupplier: (inputLength: number) => T) {
+    this._autocorrelator = new Autocorrelator(inputLength, bufferSupplier);
+    this._ndsfBuffer = bufferSupplier(inputLength);
+  }
+
+  /**
+   * Returns the pitch detected using McLeod Pitch Method (MPM) along with a
+   * measure of its clarity.
+   *
+   * The clarity is a value between 0 and 1 (potentially inclusive) that
+   * represents how "clear" the pitch was. A clarity value of 1 indicates that
+   * the pitch was very distinct, while lower clarity values indicate less
+   * definite pitches.
+   *
+   * @param input - the time-domain input data
+   * @param sampleRate - the sample rate at which the input data was collected
+   * @returns the detected pitch, in Hz, followed by the clarity
+   */
+  findPitch(input: ArrayLike<number>, sampleRate: number): [number, number] {
+    this._ndsf(input);
+    const keyMaximumIndices = getKeyMaximumIndices(this._ndsfBuffer);
+    if (keyMaximumIndices.length === 0) {
+      // No key maxima means that we either don't have enough data to analyze or
+      // that the data was flawed (such as an input array of zeroes)
+      return [0, 0];
+    }
+    // The highest key maximum
+    const nMax = Math.max(...keyMaximumIndices.map((i) => this._ndsfBuffer[i]));
+    // Following the paper, we return the pitch corresponding to the first key
+    // maximum higher than K * nMax. This is guaranteed not to be undefined, since
+    // we know of at least one key maximum satisfying this condition (whichever
+    // key maximum gave us nMax).
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const resultIndex = keyMaximumIndices.find(
+      (i) => this._ndsfBuffer[i] >= this._clarityThreshold * nMax
+    )!;
+
+    // Due to floating point errors, the clarity may occasionally come out to be
+    // slightly over 1.0. We can avoid incorrect results by clamping the value.
+    const clarity = Math.min(this._ndsfBuffer[resultIndex], 1.0);
+    return [sampleRate / resultIndex, clarity];
+  }
+
+  /**
+   * Computes the NDSF of the input and stores it in the internal buffer. This
+   * is equation (9) in the McLeod pitch method paper.
+   */
+  private _ndsf(input: ArrayLike<number>): void {
+    // The function r'(tau) is the autocorrelation
+    this._autocorrelator.autocorrelate(input, this._ndsfBuffer);
+    // The function m'(tau) (defined in equation (6)) can be computed starting
+    // with m'(0), which is equal to 2r'(0), and then iteratively modified to
+    // get m'(1), m'(2), etc. For example, to get m'(1), we take m'(0) and
+    // subtract x_0^2 and x_{W-1}^2. Then, to get m'(2), we take m'(1) and
+    // subtract x_1^2 and x_{W-2}^2, and further values are similar (see the
+    // note at the end of section 6 in the MPM paper).
+    //
+    // The resulting array values are 2 * r'(tau) / m'(tau). We use m below as
+    // the incremental value of m'.
+    let m = 2 * this._ndsfBuffer[0];
+    // From the definition of r'(tau) (equation (2)), it is clear that m === 0
+    // if and only if every value in the input data is zero
+    if (m === 0) {
+      // We don't want to trigger any divisions by zero; if the given input data
+      // consists of all zeroes, then so should the output data
+      for (let i = 0; i < this._ndsfBuffer.length; i++) {
+        this._ndsfBuffer[i] = 0;
+      }
+    } else {
+      for (let i = 0; i < this._ndsfBuffer.length; i++) {
+        this._ndsfBuffer[i] = (2 * this._ndsfBuffer[i]) / m;
+        m -= input[i] ** 2 + input[input.length - i - 1] ** 2;
+      }
+    }
+  }
 }
