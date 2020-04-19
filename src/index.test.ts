@@ -5,12 +5,32 @@
  * license can be found in the LICENSE file in the project root, or at
  * https://opensource.org/licenses/MIT.
  */
+/* eslint-env jest */
+
 import { autocorrelate, findPitch } from '.';
 
 import { toBeDeepCloseTo } from 'jest-matcher-deep-close-to';
 import toBeWithinPercent from 'jest-matcher-percent-error';
 
 expect.extend({ toBeDeepCloseTo, toBeWithinPercent });
+
+/**
+ * Returns a Float32Array populated with sine wave data.
+ */
+function sineWave(
+  length: number,
+  pitch: number,
+  sampleRate: number
+): Float32Array {
+  const frequency = pitch / sampleRate;
+  const result = new Float32Array(length);
+
+  for (let i = 0; i < result.length; i++) {
+    result[i] = Math.sin(2 * Math.PI * frequency * i);
+  }
+
+  return result;
+}
 
 describe('autocorrelate()', () => {
   test('computes the autocorrelation of small datasets', () => {
@@ -69,22 +89,8 @@ describe('findPitch()', () => {
   });
 
   test('returns a confidence of 0 when given an array of zeroes', () => {
-    let zeroes = new Array(1000);
+    const zeroes = new Array(1000);
     zeroes.fill(0);
     expect(findPitch(zeroes, 44100)[1]).toBe(0);
   });
 });
-
-/**
- * Returns a Float32Array populated with sine wave data.
- */
-function sineWave(length, pitch, sampleRate) {
-  const frequency = pitch / sampleRate;
-  let result = new Float32Array(length);
-
-  for (let i = 0; i < result.length; i++) {
-    result[i] = Math.sin(2 * Math.PI * frequency * i);
-  }
-
-  return result;
-}

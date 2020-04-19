@@ -1,7 +1,7 @@
 import babel from 'rollup-plugin-babel';
 
 export default {
-  input: 'src/index.js',
+  input: 'src/index.ts',
   output: [
     {
       file: 'lib/index.js',
@@ -15,6 +15,7 @@ export default {
   plugins: [
     babel({
       exclude: 'node_modules/**',
+      extensions: ['.ts', '.js'],
     }),
   ],
   external: ['fft.js', 'next-pow-2'],

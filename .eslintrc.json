@@ -1,22 +1,16 @@
 {
   "env": {
-    "es6": true,
-    "jest": true,
-    "node": true
+    "es2020": true
   },
-  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
-  "parserOptions": {
-    "ecmaVersion": 2018,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "impliedStrict": true
-    }
-  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
   "rules": {
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "unix"],
-    "no-console": "off",
-    "quotes": ["error", "single"],
-    "semi": ["error", "always"]
+    "tsdoc/syntax": "warn"
   }
 }
