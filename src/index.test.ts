@@ -7,7 +7,7 @@
  */
 /* eslint-env jest */
 
-import { autocorrelate, findPitch } from '.';
+import { findPitch, Autocorrelator, Buffer } from '.';
 
 import { toBeDeepCloseTo } from 'jest-matcher-deep-close-to';
 import toBeWithinPercent from 'jest-matcher-percent-error';
@@ -32,25 +32,80 @@ function sineWave(
   return result;
 }
 
-describe('autocorrelate()', () => {
-  test('computes the autocorrelation of small datasets', () => {
-    expect(autocorrelate([1, -1])).toBeDeepCloseTo([2, -1], 8);
-    expect(autocorrelate([1, 2, 1])).toBeDeepCloseTo([6, 4, 1], 8);
-    expect(autocorrelate([1, 0, 1, 0])).toBeDeepCloseTo([2, 0, 1, 0], 8);
-    expect(autocorrelate([1, 2, 3, 4])).toBeDeepCloseTo([30, 20, 11, 4], 8);
-    expect(autocorrelate([1, -1, 1, -1, 1, -1, 1, -1])).toBeDeepCloseTo(
-      [8, -7, 6, -5, 4, -3, 2, -1],
-      8
-    );
+describe('Autocorrelator', () => {
+  describe('constructor', () => {
+    test('throws an error if the input length is too small', () => {
+      expect(
+        () => new Autocorrelator(0, (length) => new Float32Array(length))
+      ).toThrow('Input length must be at least one');
+      expect(
+        () => new Autocorrelator(-5, (length) => new Float32Array(length))
+      ).toThrow('Input length must be at least one');
+    });
   });
 
-  test('operates correctly on a Float32Array', () => {
-    expect(autocorrelate(Float32Array.of(1, 1))).toBeDeepCloseTo([2, 1], 8);
-  });
+  interface InputType<T extends Buffer<number>> {
+    description: string;
+    supplier: (inputLength: number) => Autocorrelator<T>;
+    arrayConverter: (arr: number[]) => T;
+  }
 
-  test('operates correctly on a Float64Array', () => {
-    expect(autocorrelate(Float64Array.of(1, 1))).toBeDeepCloseTo([2, 1], 8);
-  });
+  const inputTypes: InputType<Buffer<number>>[] = [
+    {
+      description: '<Float32Array>',
+      supplier: Autocorrelator.forFloat32Array,
+      arrayConverter: (arr): Float32Array => Float32Array.from(arr),
+    },
+    {
+      description: '<Float64Array>',
+      supplier: Autocorrelator.forFloat64Array,
+      arrayConverter: (arr): Float64Array => Float64Array.from(arr),
+    },
+    {
+      description: '<number[]>',
+      supplier: Autocorrelator.forNumberArray,
+      arrayConverter: (arr): number[] => arr,
+    },
+  ];
+
+  for (const inputType of inputTypes) {
+    describe(inputType.description, () => {
+      describe('autocorrelate()', () => {
+        const autocorrelate = (input: ArrayLike<number>): ArrayLike<number> => {
+          const autocorrelator = inputType.supplier(input.length);
+          return autocorrelator.autocorrelate(input);
+        };
+
+        for (const arrayType of inputTypes) {
+          describe(`input: ${arrayType.description}`, () => {
+            test('computes the autocorrelation of small datasets', () => {
+              expect(
+                autocorrelate(arrayType.arrayConverter([1, -1]))
+              ).toBeDeepCloseTo([2, -1], 6);
+
+              expect(
+                autocorrelate(arrayType.arrayConverter([1, 2, 1]))
+              ).toBeDeepCloseTo([6, 4, 1], 6);
+
+              expect(
+                autocorrelate(arrayType.arrayConverter([1, 0, 1, 0]))
+              ).toBeDeepCloseTo([2, 0, 1, 0], 6);
+
+              expect(
+                autocorrelate(arrayType.arrayConverter([1, 2, 3, 4]))
+              ).toBeDeepCloseTo([30, 20, 11, 4], 6);
+
+              expect(
+                autocorrelate(
+                  arrayType.arrayConverter([1, -1, 1, -1, 1, -1, 1, -1])
+                )
+              ).toBeDeepCloseTo([8, -7, 6, -5, 4, -3, 2, -1], 6);
+            });
+          });
+        }
+      });
+    });
+  }
 });
 
 describe('findPitch()', () => {

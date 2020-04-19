@@ -9,45 +9,131 @@
 import FFT from 'fft.js';
 import np2 from 'next-pow-2';
 
+export interface Buffer<T> {
+  readonly length: number;
+  [n: number]: T;
+}
+
 /**
- * Returns an array containing the autocorrelated input data.
+ * A class that can perform autocorrelation on input arrays of a given size.
  *
- * @param input - the input data
- * @returns the autocorrelated input data
+ * The class holds internal buffers so that no additional allocations are
+ * necessary while performing the operation.
+ *
+ * @typeParam T - the buffer type to use. While inputs to the autocorrelation
+ * process can be any array-like type, the output buffer (whether provided
+ * explicitly or using a fresh buffer) is always of this type.
  */
-export function autocorrelate(input: ArrayLike<number>): number[] {
-  // We need to double the input length to get correct results, and the FFT
-  // algorithm we use requires a size that's a power of 2
-  const fft = new FFT(np2(2 * input.length));
+export class Autocorrelator<T extends Buffer<number>> {
+  private readonly _inputLength: number;
+  private _fft: FFT;
+  private _bufferSupplier: (size: number) => T;
+  private _paddedInputBuffer: T;
+  private _transformBuffer: T;
+  private _inverseBuffer: T;
 
-  // Step 0: pad the input array with zeros
-  const paddedInput = new Array(fft.size);
-  for (let i = 0; i < input.length; i++) {
-    paddedInput[i] = input[i];
+  /**
+   * A helper method to create an {@link Autocorrelator} using {@link Float32Array} buffers.
+   *
+   * @param inputLength - the input array length to support
+   */
+  static forFloat32Array(inputLength: number): Autocorrelator<Float32Array> {
+    return new Autocorrelator(
+      inputLength,
+      (length) => new Float32Array(length)
+    );
   }
-  paddedInput.fill(0, input.length);
 
-  // Step 1: get the DFT of the input array
-  const tmp = fft.createComplexArray();
-  fft.realTransform(tmp, paddedInput);
-  // We need to fill in the right half of the array too
-  fft.completeSpectrum(tmp);
-  // Step 2: multiply each entry by its conjugate
-  for (let i = 0; i < tmp.length; i += 2) {
-    tmp[i] = tmp[i] * tmp[i] + tmp[i + 1] * tmp[i + 1];
-    tmp[i + 1] = 0;
+  static forFloat64Array(inputLength: number): Autocorrelator<Float64Array> {
+    return new Autocorrelator(
+      inputLength,
+      (length) => new Float64Array(length)
+    );
   }
-  // Step 3: perform the inverse transform
-  const tmp2 = fft.createComplexArray();
-  fft.inverseTransform(tmp2, tmp);
 
-  // This last result (the inverse transform) contains the autocorrelation
-  // data, which is completely real
-  const result = new Array(input.length);
-  for (let i = 0; i < input.length; i++) {
-    result[i] = tmp2[2 * i];
+  static forNumberArray(inputLength: number): Autocorrelator<number[]> {
+    return new Autocorrelator(inputLength, (length) => Array(length));
   }
-  return result;
+
+  /**
+   * Constructs a new {@link Autocorrelator} able to handle input arrays of the
+   * given length.
+   *
+   * @param inputLength - the input array length to support. This `Autocorrelator`
+   * will only support operation on arrays of this length.
+   * @param bufferSupplier - the function to use for creating buffers, accepting
+   * the length of the buffer to create and returning a new buffer of that
+   * length. The values of the returned buffer need not be initialized in any
+   * particular way.
+   */
+  constructor(inputLength: number, bufferSupplier: (length: number) => T) {
+    if (inputLength < 1) {
+      throw new Error(`Input length must be at least one`);
+    }
+    this._inputLength = inputLength;
+    // We need to double the input length to get correct results, and the FFT
+    // algorithm we use requires a length that's a power of 2
+    this._fft = new FFT(np2(2 * inputLength));
+    this._bufferSupplier = bufferSupplier;
+    this._paddedInputBuffer = this._bufferSupplier(this._fft.size);
+    this._transformBuffer = this._bufferSupplier(2 * this._fft.size);
+    this._inverseBuffer = this._bufferSupplier(2 * this._fft.size);
+  }
+
+  /**
+   * Returns the supported input length.
+   *
+   * @returns the supported input length
+   */
+  get inputLength(): number {
+    return this._inputLength;
+  }
+
+  /**
+   * Autocorrelates the given input data.
+   *
+   * @param input - the input data to autocorrelate
+   * @param output - the output buffer into which to write the autocorrelated
+   * data. If not provided, a new buffer will be created.
+   * @returns `output`
+   */
+  autocorrelate(
+    input: ArrayLike<number>,
+    output: T = this._bufferSupplier(input.length)
+  ): T {
+    if (input.length !== this._inputLength) {
+      throw new Error(
+        `Input must have length ${this._inputLength} but had length ${input.length}`
+      );
+    }
+    // Step 0: pad the input array with zeros
+    for (let i = 0; i < input.length; i++) {
+      this._paddedInputBuffer[i] = input[i];
+    }
+    for (let i = input.length; i < this._paddedInputBuffer.length; i++) {
+      this._paddedInputBuffer[i] = 0;
+    }
+
+    // Step 1: get the DFT of the input array
+    this._fft.realTransform(this._transformBuffer, this._paddedInputBuffer);
+    // We need to fill in the right half of the array too
+    this._fft.completeSpectrum(this._transformBuffer);
+    // Step 2: multiply each entry by its conjugate
+    const tb = this._transformBuffer;
+    for (let i = 0; i < tb.length; i += 2) {
+      tb[i] = tb[i] * tb[i] + tb[i + 1] * tb[i + 1];
+      tb[i + 1] = 0;
+    }
+    // Step 3: perform the inverse transform
+    this._fft.inverseTransform(this._inverseBuffer, this._transformBuffer);
+
+    // This last result (the inverse transform) contains the autocorrelation
+    // data, which is completely real
+    for (let i = 0; i < input.length; i++) {
+      output[i] = this._inverseBuffer[2 * i];
+    }
+    return output;
+  }
 }
 
 /**
@@ -57,7 +143,8 @@ export function autocorrelate(input: ArrayLike<number>): number[] {
  */
 function ndsf(input: ArrayLike<number>): number[] {
   // The function r'(tau) is the autocorrelation.
-  const rPrimeArray = autocorrelate(input);
+  const autocorrelator = Autocorrelator.forNumberArray(input.length);
+  const rPrimeArray = autocorrelator.autocorrelate(input);
   // The function m'(tau) (defined in equation (6)) can be computed starting
   // with m'(0), which is equal to 2r'(0), and then iteratively modified to get
   // m'(1), m'(2), etc. For example, to get m'(1), we take m'(0) and subtract

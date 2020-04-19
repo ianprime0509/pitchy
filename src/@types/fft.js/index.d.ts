@@ -8,6 +8,11 @@
 // TODO: contribute to @types organization
 
 declare module 'fft.js' {
+  interface WritableArrayLike<T> {
+    readonly length: number;
+    [n: number]: T;
+  }
+
   class FFT {
     readonly size: number;
     readonly table: number[];
@@ -19,17 +24,26 @@ declare module 'fft.js' {
 
     createComplexArray(): number[];
 
-    toComplexArray(input: number[], storage?: number[]): number[];
+    toComplexArray(input: ArrayLike<number>, storage?: number[]): number[];
 
-    fromComplexArray(complex: number[], storage?: number[]): number[];
+    fromComplexArray(complex: ArrayLike<number>, storage?: number[]): number[];
 
-    completeSpectrum(spectrum: number[]): void;
+    completeSpectrum(spectrum: WritableArrayLike<number>): void;
 
-    realTransform(output: number[], input: number[]): void;
+    realTransform(
+      output: WritableArrayLike<number>,
+      input: ArrayLike<number>
+    ): void;
 
-    transform(output: number[], input: number[]): void;
+    transform(
+      output: WritableArrayLike<number>,
+      input: ArrayLike<number>
+    ): void;
 
-    inverseTransform(output: number[], input: number[]): void;
+    inverseTransform(
+      output: WritableArrayLike<number>,
+      input: ArrayLike<number>
+    ): void;
   }
 
   export = FFT;
