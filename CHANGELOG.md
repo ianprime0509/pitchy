@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0-alpha.0] - 2020-04-19
+
 ### Added
 
 - TypeScript type declarations
@@ -15,6 +17,14 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Converted code to TypeScript
+- Replaced `findPitch` and `autocorrelate` functions with new class-based
+  interface consisting of `PitchDetector` and `Autocorrelator`
+
+### Fixed
+
+- Clarity returned by `findPitch` could sometimes be slightly greater than 1.0
+  due to floating-point rounding errors, and is now clamped to be no greater
+  than 1.0
 
 ## [1.1.0] - 2020-03-11
 
