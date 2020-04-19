@@ -256,6 +256,15 @@ export class PitchDetector<T extends Buffer<number>> {
   }
 
   /**
+   * Returns the supported input length.
+   *
+   * @returns the supported input length
+   */
+  get inputLength(): number {
+    return this._autocorrelator.inputLength;
+  }
+
+  /**
    * Returns the pitch detected using McLeod Pitch Method (MPM) along with a
    * measure of its clarity.
    *
