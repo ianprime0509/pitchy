@@ -319,19 +319,21 @@ export class PitchDetector<T extends Buffer<number>> {
     // The resulting array values are 2 * r'(tau) / m'(tau). We use m below as
     // the incremental value of m'.
     let m = 2 * this._nsdfBuffer[0];
-    // From the definition of r'(tau) (equation (2)), it is clear that m === 0
-    // if and only if every value in the input data is zero
-    if (m === 0) {
-      // We don't want to trigger any divisions by zero; if the given input data
-      // consists of all zeroes, then so should the output data
-      for (let i = 0; i < this._nsdfBuffer.length; i++) {
-        this._nsdfBuffer[i] = 0;
-      }
-    } else {
-      for (let i = 0; i < this._nsdfBuffer.length; i++) {
-        this._nsdfBuffer[i] = (2 * this._nsdfBuffer[i]) / m;
-        m -= input[i] ** 2 + input[input.length - i - 1] ** 2;
-      }
+    let i: number;
+    // As pointed out by issuefiler on GitHub, we can take advantage of the fact
+    // that m will never increase to avoid division by zero by ending this loop
+    // once m === 0. The rest of the array values after m becomes 0 will just be
+    // set to 0 themselves. We actually check for m > 0 rather than m === 0
+    // because there may be small floating-point errors that cause m to become
+    // negative rather than exactly 0.
+    for (i = 0; i < this._nsdfBuffer.length && m > 0; i++) {
+      this._nsdfBuffer[i] = (2 * this._nsdfBuffer[i]) / m;
+      m -= input[i] ** 2 + input[input.length - i - 1] ** 2;
+    }
+    // If there are any array values remaining, it means m === 0 for those
+    // values of tau, so we can just set them to 0
+    for (; i < this._nsdfBuffer.length; i++) {
+      this._nsdfBuffer[i] = 0;
     }
   }
 }

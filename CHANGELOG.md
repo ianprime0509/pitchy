@@ -8,6 +8,10 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Eliminate division by zero for certain inputs
+
 ## [2.0.0-alpha.0] - 2020-04-19
 
 ### Added
