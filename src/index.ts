@@ -208,7 +208,7 @@ function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
  */
 export class PitchDetector<T extends Buffer<number>> {
   private _autocorrelator: Autocorrelator<T>;
-  private _ndsfBuffer: T;
+  private _nsdfBuffer: T;
   // TODO: it might be nice if this were configurable
   private readonly _clarityThreshold = 0.9;
 
@@ -252,7 +252,7 @@ export class PitchDetector<T extends Buffer<number>> {
    */
   constructor(inputLength: number, bufferSupplier: (inputLength: number) => T) {
     this._autocorrelator = new Autocorrelator(inputLength, bufferSupplier);
-    this._ndsfBuffer = bufferSupplier(inputLength);
+    this._nsdfBuffer = bufferSupplier(inputLength);
   }
 
   /**
@@ -278,37 +278,37 @@ export class PitchDetector<T extends Buffer<number>> {
    * @returns the detected pitch, in Hz, followed by the clarity
    */
   findPitch(input: ArrayLike<number>, sampleRate: number): [number, number] {
-    this._ndsf(input);
-    const keyMaximumIndices = getKeyMaximumIndices(this._ndsfBuffer);
+    this._nsdf(input);
+    const keyMaximumIndices = getKeyMaximumIndices(this._nsdfBuffer);
     if (keyMaximumIndices.length === 0) {
       // No key maxima means that we either don't have enough data to analyze or
       // that the data was flawed (such as an input array of zeroes)
       return [0, 0];
     }
     // The highest key maximum
-    const nMax = Math.max(...keyMaximumIndices.map((i) => this._ndsfBuffer[i]));
+    const nMax = Math.max(...keyMaximumIndices.map((i) => this._nsdfBuffer[i]));
     // Following the paper, we return the pitch corresponding to the first key
     // maximum higher than K * nMax. This is guaranteed not to be undefined, since
     // we know of at least one key maximum satisfying this condition (whichever
     // key maximum gave us nMax).
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const resultIndex = keyMaximumIndices.find(
-      (i) => this._ndsfBuffer[i] >= this._clarityThreshold * nMax
+      (i) => this._nsdfBuffer[i] >= this._clarityThreshold * nMax
     )!;
 
     // Due to floating point errors, the clarity may occasionally come out to be
     // slightly over 1.0. We can avoid incorrect results by clamping the value.
-    const clarity = Math.min(this._ndsfBuffer[resultIndex], 1.0);
+    const clarity = Math.min(this._nsdfBuffer[resultIndex], 1.0);
     return [sampleRate / resultIndex, clarity];
   }
 
   /**
-   * Computes the NDSF of the input and stores it in the internal buffer. This
+   * Computes the NSDF of the input and stores it in the internal buffer. This
    * is equation (9) in the McLeod pitch method paper.
    */
-  private _ndsf(input: ArrayLike<number>): void {
+  private _nsdf(input: ArrayLike<number>): void {
     // The function r'(tau) is the autocorrelation
-    this._autocorrelator.autocorrelate(input, this._ndsfBuffer);
+    this._autocorrelator.autocorrelate(input, this._nsdfBuffer);
     // The function m'(tau) (defined in equation (6)) can be computed starting
     // with m'(0), which is equal to 2r'(0), and then iteratively modified to
     // get m'(1), m'(2), etc. For example, to get m'(1), we take m'(0) and
@@ -318,18 +318,18 @@ export class PitchDetector<T extends Buffer<number>> {
     //
     // The resulting array values are 2 * r'(tau) / m'(tau). We use m below as
     // the incremental value of m'.
-    let m = 2 * this._ndsfBuffer[0];
+    let m = 2 * this._nsdfBuffer[0];
     // From the definition of r'(tau) (equation (2)), it is clear that m === 0
     // if and only if every value in the input data is zero
     if (m === 0) {
       // We don't want to trigger any divisions by zero; if the given input data
       // consists of all zeroes, then so should the output data
-      for (let i = 0; i < this._ndsfBuffer.length; i++) {
-        this._ndsfBuffer[i] = 0;
+      for (let i = 0; i < this._nsdfBuffer.length; i++) {
+        this._nsdfBuffer[i] = 0;
       }
     } else {
-      for (let i = 0; i < this._ndsfBuffer.length; i++) {
-        this._ndsfBuffer[i] = (2 * this._ndsfBuffer[i]) / m;
+      for (let i = 0; i < this._nsdfBuffer.length; i++) {
+        this._nsdfBuffer[i] = (2 * this._nsdfBuffer[i]) / m;
         m -= input[i] ** 2 + input[input.length - i - 1] ** 2;
       }
     }
