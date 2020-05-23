@@ -51,6 +51,21 @@ describe("Autocorrelator", () => {
     });
   });
 
+  describe("get inputLength()", () => {
+    test("returns the configured input length", () => {
+      expect(Autocorrelator.forFloat32Array(5).inputLength).toBe(5);
+    });
+  });
+
+  describe("autocorrelate()", () => {
+    test("throws an error if the input is not of the configured input length", () => {
+      const autocorrelator = Autocorrelator.forFloat32Array(5);
+      expect(() =>
+        autocorrelator.autocorrelate(Float32Array.of(1, 2, 3))
+      ).toThrow("Input must have length 5 but had length 3");
+    });
+  });
+
   interface InputType<T extends Buffer<number>> {
     description: string;
     supplier: (inputLength: number) => Autocorrelator<T>;
@@ -118,6 +133,21 @@ describe("PitchDetector", () => {
       expect(
         () => new PitchDetector(-5, (length) => new Float32Array(length))
       ).toThrow("Input length must be at least one");
+    });
+  });
+
+  describe("get inputLength()", () => {
+    test("returns the configured input length", () => {
+      expect(PitchDetector.forFloat32Array(10).inputLength).toBe(10);
+    });
+  });
+
+  describe("findPitch()", () => {
+    test("throws an error if the input is not of the configured input length", () => {
+      const detector = PitchDetector.forFloat32Array(8);
+      expect(() => detector.findPitch(Float32Array.of(1, 2, 3), 5)).toThrow(
+        "Input must have length 8 but had length 3"
+      );
     });
   });
 
