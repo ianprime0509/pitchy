@@ -1,6 +1,6 @@
 {
   "name": "pitchy",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0",
   "description": "A simple pitch detection library.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
