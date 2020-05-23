@@ -1,38 +1,19 @@
 // Copied from
-// https://github.com/maasencioh/jest-matcher-deep-close-to/blob/master/index.d.ts
-// since it hasn't been published upstream yet
+// https://github.com/maasencioh/jest-matcher-deep-close-to/blob/3a4983e640323c5bcce64495d69c4cff304c62e2/index.d.ts
+// since upstream didn't publish these types correctly
 
-declare module "jest-matcher-deep-close-to" {
-  global {
-    namespace jest {
-      interface Matchers<R> {
-        toBeDeepCloseTo: (
-          expected: number | number[] | object,
-          decimals?: number
-        ) => R;
-        toMatchCloseTo: (
-          expected: number | number[] | object,
-          decimals?: number
-        ) => R;
-      }
-    }
+declare namespace jest {
+  type Iterable =
+    | number
+    | Iterable[]
+    | { [k: string]: Iterable }
+    | string
+    | null
+    | undefined
+    | boolean;
+
+  interface Matchers<R> {
+    toBeDeepCloseTo: (expected: Iterable, decimals?: number) => R;
+    toMatchCloseTo: (expected: Iterable, decimals?: number) => R;
   }
-
-  export function toBeDeepCloseTo(
-    received: number | number[] | object,
-    expected: number | number[] | object,
-    decimals?: number
-  ): {
-    message(): string;
-    pass: boolean;
-  };
-
-  export function toMatchCloseTo(
-    received: number | number[] | object,
-    expected: number | number[] | object,
-    decimals?: number
-  ): {
-    message(): string;
-    pass: boolean;
-  };
 }
