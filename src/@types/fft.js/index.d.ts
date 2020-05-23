@@ -7,7 +7,7 @@
  */
 // TODO: contribute to @types organization
 
-declare module 'fft.js' {
+declare module "fft.js" {
   interface WritableArrayLike<T> {
     readonly length: number;
     [n: number]: T;

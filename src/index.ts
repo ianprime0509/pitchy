@@ -6,8 +6,8 @@
  * https://opensource.org/licenses/MIT.
  */
 
-import FFT from 'fft.js';
-import np2 from 'next-pow-2';
+import FFT from "fft.js";
+import np2 from "next-pow-2";
 
 export interface Buffer<T> {
   readonly length: number;

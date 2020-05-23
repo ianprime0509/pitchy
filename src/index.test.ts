@@ -7,10 +7,10 @@
  */
 /* eslint-env jest */
 
-import { Autocorrelator, Buffer, PitchDetector } from '.';
+import { Autocorrelator, Buffer, PitchDetector } from ".";
 
-import { toBeDeepCloseTo } from 'jest-matcher-deep-close-to';
-import toBeWithinPercent from 'jest-matcher-percent-error';
+import { toBeDeepCloseTo } from "jest-matcher-deep-close-to";
+import toBeWithinPercent from "jest-matcher-percent-error";
 
 expect.extend({ toBeDeepCloseTo, toBeWithinPercent });
 
@@ -33,15 +33,15 @@ function sineWave(
   return result;
 }
 
-describe('Autocorrelator', () => {
-  describe('constructor', () => {
-    test('throws an error if the input length is too small', () => {
+describe("Autocorrelator", () => {
+  describe("constructor", () => {
+    test("throws an error if the input length is too small", () => {
       expect(
         () => new Autocorrelator(0, (length) => new Float32Array(length))
-      ).toThrow('Input length must be at least one');
+      ).toThrow("Input length must be at least one");
       expect(
         () => new Autocorrelator(-5, (length) => new Float32Array(length))
-      ).toThrow('Input length must be at least one');
+      ).toThrow("Input length must be at least one");
     });
   });
 
@@ -53,17 +53,17 @@ describe('Autocorrelator', () => {
 
   const inputTypes: InputType<Buffer<number>>[] = [
     {
-      description: '<Float32Array>',
+      description: "<Float32Array>",
       supplier: Autocorrelator.forFloat32Array,
       arrayConverter: (arr): Float32Array => Float32Array.from(arr),
     },
     {
-      description: '<Float64Array>',
+      description: "<Float64Array>",
       supplier: Autocorrelator.forFloat64Array,
       arrayConverter: (arr): Float64Array => Float64Array.from(arr),
     },
     {
-      description: '<number[]>',
+      description: "<number[]>",
       supplier: Autocorrelator.forNumberArray,
       arrayConverter: (arr): number[] => arr,
     },
@@ -71,7 +71,7 @@ describe('Autocorrelator', () => {
 
   for (const bufferType of inputTypes) {
     describe(bufferType.description, () => {
-      describe('autocorrelate()', () => {
+      describe("autocorrelate()", () => {
         const autocorrelate = (input: ArrayLike<number>): ArrayLike<number> => {
           const autocorrelator = bufferType.supplier(input.length);
           return autocorrelator.autocorrelate(input);
@@ -79,7 +79,7 @@ describe('Autocorrelator', () => {
 
         for (const inputType of inputTypes) {
           describe(`input: ${inputType.description}`, () => {
-            test('computes the autocorrelation of small datasets', () => {
+            test("computes the autocorrelation of small datasets", () => {
               expect(
                 autocorrelate(inputType.arrayConverter([1, -1]))
               ).toBeDeepCloseTo([2, -1], 6);
@@ -109,15 +109,15 @@ describe('Autocorrelator', () => {
   }
 });
 
-describe('PitchDetector', () => {
-  describe('constructor', () => {
-    test('throws an error if the input length is too small', () => {
+describe("PitchDetector", () => {
+  describe("constructor", () => {
+    test("throws an error if the input length is too small", () => {
       expect(
         () => new PitchDetector(0, (length) => new Float32Array(length))
-      ).toThrow('Input length must be at least one');
+      ).toThrow("Input length must be at least one");
       expect(
         () => new PitchDetector(-5, (length) => new Float32Array(length))
-      ).toThrow('Input length must be at least one');
+      ).toThrow("Input length must be at least one");
     });
   });
 
@@ -129,17 +129,17 @@ describe('PitchDetector', () => {
 
   const inputTypes: InputType<Buffer<number>>[] = [
     {
-      description: '<Float32Array>',
+      description: "<Float32Array>",
       supplier: PitchDetector.forFloat32Array,
       arrayConverter: (arr): Float32Array => Float32Array.from(arr),
     },
     {
-      description: '<Float64Array>',
+      description: "<Float64Array>",
       supplier: PitchDetector.forFloat64Array,
       arrayConverter: (arr): Float64Array => Float64Array.from(arr),
     },
     {
-      description: '<number[]>',
+      description: "<number[]>",
       supplier: PitchDetector.forNumberArray,
       arrayConverter: (arr): number[] => arr,
     },
@@ -147,7 +147,7 @@ describe('PitchDetector', () => {
 
   for (const bufferType of inputTypes) {
     describe(bufferType.description, () => {
-      describe('findPitch()', () => {
+      describe("findPitch()", () => {
         const findPitch = (
           input: ArrayLike<number>,
           sampleRate: number
@@ -167,20 +167,20 @@ describe('PitchDetector', () => {
                       sineWave(1000, frequency, amplitude, sampleRate)
                     );
 
-                    test('finds the pitch to within 1% error', () => {
+                    test("finds the pitch to within 1% error", () => {
                       expect(findPitch(input, sampleRate)[0]).toBeWithinPercent(
                         frequency,
                         1
                       );
                     });
 
-                    test('finds at least a clarity of 0.99', () => {
+                    test("finds at least a clarity of 0.99", () => {
                       expect(findPitch(input, sampleRate)[1]).toBeGreaterThan(
                         0.99
                       );
                     });
 
-                    test('finds at most a clarity of 1.0', () => {
+                    test("finds at most a clarity of 1.0", () => {
                       expect(
                         findPitch(input, sampleRate)[1]
                       ).toBeLessThanOrEqual(1.0);
@@ -190,7 +190,7 @@ describe('PitchDetector', () => {
               });
             }
 
-            test('returns a clarity of 0 when given an array of zeros', () => {
+            test("returns a clarity of 0 when given an array of zeros", () => {
               const zeros = new Array(1000);
               zeros.fill(0);
               expect(findPitch(inputType.arrayConverter(zeros), 44100)[1]).toBe(

@@ -2,7 +2,7 @@
 // https://github.com/maasencioh/jest-matcher-deep-close-to/blob/master/index.d.ts
 // since it hasn't been published upstream yet
 
-declare module 'jest-matcher-deep-close-to' {
+declare module "jest-matcher-deep-close-to" {
   global {
     namespace jest {
       interface Matchers<R> {
