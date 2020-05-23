@@ -9,10 +9,7 @@
 import FFT from "fft.js";
 import np2 from "next-pow-2";
 
-export interface Buffer<T> {
-  readonly length: number;
-  [n: number]: T;
-}
+export type Buffer = Float32Array | Float64Array | number[];
 
 /**
  * A class that can perform autocorrelation on input arrays of a given size.
@@ -24,7 +21,7 @@ export interface Buffer<T> {
  * process can be any array-like type, the output buffer (whether provided
  * explicitly or using a fresh buffer) is always of this type.
  */
-export class Autocorrelator<T extends Buffer<number>> {
+export class Autocorrelator<T extends Buffer> {
   private readonly _inputLength: number;
   private _fft: FFT;
   private _bufferSupplier: (size: number) => T;
@@ -206,7 +203,7 @@ function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
  * @typeParam T - the buffer type to use internally. Inputs to the
  * pitch-detection process can be any numeric array type.
  */
-export class PitchDetector<T extends Buffer<number>> {
+export class PitchDetector<T extends Buffer> {
   private _autocorrelator: Autocorrelator<T>;
   private _nsdfBuffer: T;
   // TODO: it might be nice if this were configurable

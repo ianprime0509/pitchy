@@ -66,13 +66,13 @@ describe("Autocorrelator", () => {
     });
   });
 
-  interface InputType<T extends Buffer<number>> {
+  interface InputType<T extends Buffer> {
     description: string;
     supplier: (inputLength: number) => Autocorrelator<T>;
     arrayConverter: (arr: number[]) => T;
   }
 
-  const inputTypes: InputType<Buffer<number>>[] = [
+  const inputTypes: InputType<Buffer>[] = [
     {
       description: "<Float32Array>",
       supplier: Autocorrelator.forFloat32Array,
@@ -151,13 +151,13 @@ describe("PitchDetector", () => {
     });
   });
 
-  interface InputType<T extends Buffer<number>> {
+  interface InputType<T extends Buffer> {
     description: string;
     supplier: (inputLength: number) => PitchDetector<T>;
     arrayConverter: (arr: number[]) => T;
   }
 
-  const inputTypes: InputType<Buffer<number>>[] = [
+  const inputTypes: InputType<Buffer>[] = [
     {
       description: "<Float32Array>",
       supplier: PitchDetector.forFloat32Array,

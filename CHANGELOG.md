@@ -8,6 +8,11 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Limited supported buffer types to `Float32Array`, `Float64Array` and
+  `number[]`
+
 ## [2.0.0-alpha.1] - 2020-05-16
 
 ### Fixed
