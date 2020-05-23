@@ -14,24 +14,30 @@ import toBeWithinPercent from "jest-matcher-percent-error";
 
 expect.extend({ toBeDeepCloseTo, toBeWithinPercent });
 
-/**
- * Returns a Float32Array populated with sine wave data.
- */
-function sineWave(
+type WaveformGenerator = (
   length: number,
   pitch: number,
   amplitude: number,
   sampleRate: number
-): number[] {
-  const frequency = pitch / sampleRate;
-  const result = new Array(length);
+) => number[];
 
-  for (let i = 0; i < result.length; i++) {
-    result[i] = amplitude * Math.sin(2 * Math.PI * frequency * i);
-  }
+function waveform(unitWave: (t: number) => number): WaveformGenerator {
+  return (length, pitch, amplitude, sampleRate): number[] => {
+    const frequency = pitch / sampleRate;
+    const result = new Array(length);
 
-  return result;
+    for (let i = 0; i < result.length; i++) {
+      result[i] = amplitude * unitWave(frequency * i);
+    }
+
+    return result;
+  };
 }
+
+const sineWave = waveform((t) => Math.sin(2 * Math.PI * t));
+const squareWave = waveform((t) => (t % 1.0 >= 0.5 ? 1 : -1));
+const triangleWave = waveform((t) => 4 * Math.abs(t - Math.round(t)) - 1);
+const sawtoothWave = waveform((t) => 2 * (t - Math.round(t)));
 
 describe("Autocorrelator", () => {
   describe("constructor", () => {
@@ -139,6 +145,35 @@ describe("PitchDetector", () => {
     },
   ];
 
+  interface Waveform {
+    name: string;
+    generator: WaveformGenerator;
+    minClarity: number;
+  }
+
+  const waveforms: Waveform[] = [
+    {
+      name: "sine wave",
+      generator: sineWave,
+      minClarity: 0.99,
+    },
+    {
+      name: "square wave",
+      generator: squareWave,
+      minClarity: 0.98,
+    },
+    {
+      name: "triangle wave",
+      generator: triangleWave,
+      minClarity: 0.99,
+    },
+    {
+      name: "sawtooth wave",
+      generator: sawtoothWave,
+      minClarity: 0.98,
+    },
+  ];
+
   for (const bufferType of inputTypes) {
     describe(bufferType.description, () => {
       describe("findPitch()", () => {
@@ -152,33 +187,41 @@ describe("PitchDetector", () => {
 
         for (const inputType of inputTypes) {
           describe(`input: ${inputType.description}`, () => {
-            for (const amplitude of [0.5, 1.0, 2.0]) {
-              describe(`with a sine wave of amplitude ${amplitude}`, () => {
-                for (const frequency of [440, 880, 245, 100]) {
-                  describe(`and frequency ${frequency}`, () => {
-                    const sampleRate = 44100;
-                    const input = inputType.arrayConverter(
-                      sineWave(1000, frequency, amplitude, sampleRate)
-                    );
+            for (const waveform of waveforms) {
+              describe(`with a ${waveform.name}`, () => {
+                for (const amplitude of [0.5, 1.0, 2.0]) {
+                  describe(`of amplitude ${amplitude}`, () => {
+                    for (const frequency of [440, 880, 245, 100]) {
+                      describe(`and frequency ${frequency}`, () => {
+                        const sampleRate = 44100;
+                        const input = inputType.arrayConverter(
+                          waveform.generator(
+                            1000,
+                            frequency,
+                            amplitude,
+                            sampleRate
+                          )
+                        );
 
-                    test("finds the pitch to within 1% error", () => {
-                      expect(findPitch(input, sampleRate)[0]).toBeWithinPercent(
-                        frequency,
-                        1
-                      );
-                    });
+                        test("finds the pitch to within 1% error", () => {
+                          expect(
+                            findPitch(input, sampleRate)[0]
+                          ).toBeWithinPercent(frequency, 1);
+                        });
 
-                    test("finds at least a clarity of 0.99", () => {
-                      expect(findPitch(input, sampleRate)[1]).toBeGreaterThan(
-                        0.99
-                      );
-                    });
+                        test(`finds at least a clarity of ${waveform.minClarity}`, () => {
+                          expect(
+                            findPitch(input, sampleRate)[1]
+                          ).toBeGreaterThan(waveform.minClarity);
+                        });
 
-                    test("finds at most a clarity of 1.0", () => {
-                      expect(
-                        findPitch(input, sampleRate)[1]
-                      ).toBeLessThanOrEqual(1.0);
-                    });
+                        test("finds at most a clarity of 1.0", () => {
+                          expect(
+                            findPitch(input, sampleRate)[1]
+                          ).toBeLessThanOrEqual(1.0);
+                        });
+                      });
+                    }
                   });
                 }
               });
