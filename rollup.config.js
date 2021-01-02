@@ -1,6 +1,6 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import babel from "rollup-plugin-babel";
+import babel from "@rollup/plugin-babel";
 
 export default [
   {
@@ -17,11 +17,13 @@ export default [
     ],
     plugins: [
       babel({
+        babelHelpers: "runtime",
+        plugins: ["@babel/plugin-transform-runtime"],
         exclude: "node_modules/**",
         extensions: [".ts", ".js"],
       }),
     ],
-    external: ["fft.js", "next-pow-2"],
+    external: ["fft.js", "next-pow-2", /@babel\/runtime/],
   },
   {
     input: "src/index.ts",
@@ -36,6 +38,7 @@ export default [
       nodeResolve(),
       commonjs(),
       babel({
+        babelHelpers: "bundled",
         exclude: "node_modules/**",
         extensions: [".ts", ".js"],
       }),
