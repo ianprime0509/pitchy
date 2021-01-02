@@ -50,7 +50,7 @@ function updatePitch(analyserNode, detector, input, sampleRate) {
 
   document.getElementById('pitch').textContent = String(pitch);
   document.getElementById('clarity').textContent = String(clarity);
-  window.requestAnimationFrame(() => updatePitch(analyserNode, sampleRate));
+  window.requestAnimationFrame(() => updatePitch(analyserNode, detector, input, sampleRate));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
