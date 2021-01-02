@@ -8,6 +8,13 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.3] - 2021-01-02
+
+### Added
+
+- Now publishing in UMD format under the `umd` directory (which can be used with
+  https://unpkg.com)
+
 ## [2.0.2] - 2020-09-12
 
 ### Changed
