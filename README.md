@@ -7,7 +7,7 @@ pitchy is a simple pitch-detection library written entirely in JavaScript that
 aims to be fast and accurate enough to be used in real-time applications such as
 tuners. To do this, it uses the McLeod Pitch Method, described in the paper [A
 Smarter Way to Find
-Pitch](http://miracle.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf)
+Pitch](http://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf)
 by Philip McLeod and Geoff Wyvill.
 
 ## Installation
