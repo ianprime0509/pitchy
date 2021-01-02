@@ -18,6 +18,16 @@ You can install pitchy using npm:
 npm install pitchy
 ```
 
+Alternatively, to use pitchy in a simple web page without any bundler tools, you
+can use [unpkg](https://unpkg.com). This is the approach taken in the simple
+example under the `examples/simple` directory in this project: just include the
+following `script` tag in your page and then access the contents of the library
+under the `pitchy` global object:
+
+```html
+<script src="https://unpkg.com/pitchy@2.0.3/umd/index.js"></script>
+```
+
 ## Usage
 
 The main functionality of this module is exposed by the `PitchDetector` class.
@@ -39,24 +49,31 @@ length indicated by the `inputLength` that was passed when constructing the
 `PitchDetector`.
 
 The following is an example of how a simple tuner might be implemented using
-`PitchDetector`.
+`PitchDetector`. A runnable version of this example (as a single HTML page) can
+be found in the `examples/simple` directory of this project.
 
 ```js
-import { PitchDetector } from 'pitchy';
+import { PitchDetector } from "pitchy";
 
 function updatePitch(analyserNode, detector, input, sampleRate) {
   analyserNode.getFloatTimeDomainData(input);
-  let [pitch, clarity] = detector.findPitch(input, sampleRate);
+  const [pitch, clarity] = detector.findPitch(input, sampleRate);
 
-  document.getElementById('pitch').textContent = String(pitch);
-  document.getElementById('clarity').textContent = String(clarity);
-  window.requestAnimationFrame(() => updatePitch(analyserNode, detector, input, sampleRate));
+  document.getElementById("pitch").textContent = `${
+    Math.round(pitch * 10) / 10
+  } Hz`;
+  document.getElementById("clarity").textContent = `${Math.round(
+    clarity * 100
+  )} %`;
+  window.setTimeout(
+    () => updatePitch(analyserNode, detector, input, sampleRate),
+    100
+  );
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // For cross-browser compatibility.
-  let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  let analyserNode = audioContext.createAnalyser();
+document.addEventListener("DOMContentLoaded", () => {
+  const audioContext = new window.AudioContext();
+  const analyserNode = audioContext.createAnalyser();
 
   navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
     let sourceNode = audioContext.createMediaStreamSource(stream);

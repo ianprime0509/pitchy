@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pitchy simple example</title>
+  </head>
+  <body>
+    <div>Pitch: <span id="pitch">0</span></div>
+    <div>Clarity: <span id="clarity">0</span></div>
+    <script src="https://unpkg.com/pitchy@2.0.3/umd/index.js"></script>
+    <script>
+      function updatePitch(analyserNode, detector, input, sampleRate) {
+        analyserNode.getFloatTimeDomainData(input);
+        const [pitch, clarity] = detector.findPitch(input, sampleRate);
+
+        document.getElementById("pitch").textContent = `${
+          Math.round(pitch * 10) / 10
+        } Hz`;
+        document.getElementById("clarity").textContent = `${Math.round(
+          clarity * 100
+        )} %`;
+        window.setTimeout(
+          () => updatePitch(analyserNode, detector, input, sampleRate),
+          100
+        );
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const audioContext = new window.AudioContext();
+        const analyserNode = audioContext.createAnalyser();
+
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+          let sourceNode = audioContext.createMediaStreamSource(stream);
+          sourceNode.connect(analyserNode);
+          const detector = pitchy.PitchDetector.forFloat32Array(
+            analyserNode.fftSize
+          );
+          const input = new Float32Array(detector.inputLength);
+          updatePitch(analyserNode, detector, input, audioContext.sampleRate);
+        });
+      });
+    </script>
+  </body>
+</html>
