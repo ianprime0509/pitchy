@@ -8,6 +8,14 @@
   <body>
     <div>Pitch: <span id="pitch">0</span></div>
     <div>Clarity: <span id="clarity">0</span></div>
+    <br>
+    <div>
+      On some browsers (such as Chrome), audio contexts will not work until they
+      are resumed following a user input or gesture on the page, to prevent
+      annoyance. If the pitch and clarity above are not updating, try clicking
+      this button to resume the audio context:
+      <button id="resume-button">Resume audio context</button>
+    </div>
     <script src="https://unpkg.com/pitchy@2.0.3/umd/index.js"></script>
     <script>
       function updatePitch(analyserNode, detector, input, sampleRate) {
@@ -29,6 +37,10 @@
       document.addEventListener("DOMContentLoaded", () => {
         const audioContext = new window.AudioContext();
         const analyserNode = audioContext.createAnalyser();
+
+        document
+          .getElementById("resume-button")
+          .addEventListener("click", () => audioContext.resume());
 
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
           let sourceNode = audioContext.createMediaStreamSource(stream);

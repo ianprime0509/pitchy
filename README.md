@@ -72,6 +72,10 @@ function updatePitch(analyserNode, detector, input, sampleRate) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Note that in some browsers, such as Chrome, this audio context will be
+  // suspended automatically and must be resumed using audioContext.resume()
+  // following a user input on the page (such as a button click). The example
+  // in the examples/simple directory includes a button to do this.
   const audioContext = new window.AudioContext();
   const analyserNode = audioContext.createAnalyser();
 
