@@ -8,6 +8,13 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The pitch detection algorithm is now more accurate, using quadratic
+  interpolation as described in [the MPM
+  paper](http://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf)
+  to get a better estimate of the clearest frequency.
+
 ## [2.0.3] - 2021-01-02
 
 ### Added
