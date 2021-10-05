@@ -8,6 +8,8 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.1.0] - 2021-10-04
+
 ### Changed
 
 - The pitch detection algorithm is now more accurate, using quadratic
