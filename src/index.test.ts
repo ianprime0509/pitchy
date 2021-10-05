@@ -127,17 +127,17 @@ describe("Autocorrelator", () => {
               const ac = (input: number[]): number[] =>
                 Array.from(autocorrelate(inputType.arrayConverter(input)));
 
-              expect(ac([1, -1])).toBeDeepCloseTo([2, -1], 6);
+              expect(ac([1, -1])).toBeDeepCloseTo([2, -1], 5);
 
-              expect(ac([1, 2, 1])).toBeDeepCloseTo([6, 4, 1], 6);
+              expect(ac([1, 2, 1])).toBeDeepCloseTo([6, 4, 1], 5);
 
-              expect(ac([1, 0, 1, 0])).toBeDeepCloseTo([2, 0, 1, 0], 6);
+              expect(ac([1, 0, 1, 0])).toBeDeepCloseTo([2, 0, 1, 0], 5);
 
-              expect(ac([1, 2, 3, 4])).toBeDeepCloseTo([30, 20, 11, 4], 6);
+              expect(ac([1, 2, 3, 4])).toBeDeepCloseTo([30, 20, 11, 4], 5);
 
               expect(ac([1, -1, 1, -1, 1, -1, 1, -1])).toBeDeepCloseTo(
                 [8, -7, 6, -5, 4, -3, 2, -1],
-                6
+                5
               );
             });
           });
