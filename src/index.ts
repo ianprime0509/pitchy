@@ -149,17 +149,13 @@ export class Autocorrelator<T extends Buffer> {
  * In McLeod's paper, a key maximum is the highest maximum between a positively
  * sloped zero crossing and a negatively sloped one.
  *
- * TODO: the paper by McLeod proposes doing parabolic interpolation to get more
- * accurate key maxima; right now this implementation doesn't do that, but it
- * could be implemented later.
- *
  * TODO: it may be more efficient not to construct a new output array each time,
  * but that would also make the code more complicated (more so than the changes
  * that were needed to remove the other allocations).
  */
 function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
   // The indices of the key maxima
-  const keyIndices = [];
+  const keyIndices: number[] = [];
   // Whether the last zero crossing found was positively sloped; equivalently,
   // whether we're looking for a key maximum
   let lookingForMaximum = false;
@@ -168,7 +164,7 @@ function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
   // The index of the largest local maximum so far
   let maxIndex = -1;
 
-  for (let i = 1; i < input.length; i++) {
+  for (let i = 1; i < input.length - 1; i++) {
     if (input[i - 1] <= 0 && input[i] > 0) {
       // Positively sloped zero crossing
       lookingForMaximum = true;
@@ -187,6 +183,53 @@ function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
   }
 
   return keyIndices;
+}
+
+/**
+ * Refines the chosen key maximum index chosen from the given data by
+ * interpolating a parabola using the key maximum index and its two neighbors
+ * and finding the position of that parabola's maximum value.
+ *
+ * This is described in section 5 of the MPM paper as a way to refine the
+ * position of the maximum.
+ *
+ * @param index - the chosen key maximum index. This must be between `1` and
+ * `data.length - 2`, inclusive, since it and its two neighbors need to be valid
+ * indexes of `data`.
+ * @param data - the input array from which `index` was chosen
+ * @returns a pair consisting of the refined key maximum index and the
+ * interpolated value of `data` at that index (the latter of which is used as a
+ * measure of clarity)
+ */
+function refineResultIndex(
+  index: number,
+  data: ArrayLike<number>
+): [number, number] {
+  const [x0, x1, x2] = [index - 1, index, index + 1];
+  const [y0, y1, y2] = [data[x0], data[x1], data[x2]];
+
+  // The parabola going through the three data points can be written as
+  // y = y0(x - x1)(x - x2)/(x0 - x1)(x0 - x2)
+  //   + y1(x - x0)(x - x2)/(x1 - x0)(x1 - x2)
+  //   + y2(x - x0)(x - x1)/(x2 - x0)(x2 - x1)
+  // Given the definitions of x0, x1, and x2, we can simplify the denominators:
+  // y = y0(x - x1)(x - x2)/2
+  //   - y1(x - x0)(x - x2)
+  //   + y2(x - x0)(x - x1)/2
+  // We can expand this out and get the coefficients in standard form:
+  // a = y0/2 - y1 + y2/2
+  // b = -(y0/2)(x1 + x2) + y1(x0 + x2) - (y2/2)(x0 + x1)
+  // c = y0x1x2/2 - y1x0x2 + y2x0x1/2
+  // The index of the maximum is -b / 2a (by solving for x where the derivative
+  // is 0).
+
+  const a = y0 / 2 - y1 + y2 / 2;
+  const b = -(y0 / 2) * (x1 + x2) + y1 * (x0 + x2) - (y2 / 2) * (x0 + x1);
+  const c = (y0 * x1 * x2) / 2 - y1 * x0 * x2 + (y2 * x0 * x1) / 2;
+
+  const xMax = -b / (2 * a);
+  const yMax = a * xMax * xMax + b * xMax + c;
+  return [xMax, yMax];
 }
 
 /**
@@ -292,11 +335,14 @@ export class PitchDetector<T extends Buffer> {
     const resultIndex = keyMaximumIndices.find(
       (i) => this._nsdfBuffer[i] >= this._clarityThreshold * nMax
     )!;
+    const [refinedResultIndex, clarity] = refineResultIndex(
+      resultIndex,
+      this._nsdfBuffer
+    );
 
     // Due to floating point errors, the clarity may occasionally come out to be
     // slightly over 1.0. We can avoid incorrect results by clamping the value.
-    const clarity = Math.min(this._nsdfBuffer[resultIndex], 1.0);
-    return [sampleRate / resultIndex, clarity];
+    return [sampleRate / refinedResultIndex, Math.min(clarity, 1.0)];
   }
 
   /**

@@ -14,6 +14,29 @@ import toBeWithinPercent from "jest-matcher-percent-error";
 
 expect.extend({ toBeDeepCloseTo, toBeWithinPercent });
 
+expect.extend({
+  toBeWithinCents(received, expected, cents) {
+    const centsDiff = 1200 * Math.log2(received / expected);
+    const pass = Math.abs(centsDiff) <= cents;
+    return {
+      message: () =>
+        `expected ${expected} ${
+          pass ? "not to" : "to"
+        } be within ${cents} of ${received}, but was ${centsDiff} cents away`,
+      pass,
+    };
+  },
+});
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toBeWithinCents(expected: number, cents: number): R;
+    }
+  }
+}
+
 type WaveformGenerator = (
   length: number,
   pitch: number,
@@ -179,6 +202,7 @@ describe("PitchDetector", () => {
     name: string;
     generator: WaveformGenerator;
     minClarity: number;
+    maxCents: number;
   }
 
   const waveforms: Waveform[] = [
@@ -186,21 +210,25 @@ describe("PitchDetector", () => {
       name: "sine wave",
       generator: sineWave,
       minClarity: 0.99,
+      maxCents: 2,
     },
     {
       name: "square wave",
       generator: squareWave,
-      minClarity: 0.98,
+      minClarity: 0.97,
+      maxCents: 4,
     },
     {
       name: "triangle wave",
       generator: triangleWave,
       minClarity: 0.99,
+      maxCents: 2,
     },
     {
       name: "sawtooth wave",
       generator: sawtoothWave,
-      minClarity: 0.98,
+      minClarity: 0.95,
+      maxCents: 4,
     },
   ];
 
@@ -221,7 +249,13 @@ describe("PitchDetector", () => {
               describe(`with a ${waveform.name}`, () => {
                 for (const amplitude of [0.5, 1.0, 2.0]) {
                   describe(`of amplitude ${amplitude}`, () => {
-                    for (const frequency of [440, 880, 245, 100]) {
+                    for (const frequency of [
+                      440, // A4
+                      880, // A5
+                      245,
+                      100,
+                      440 * 2 ** (9 / 12), // F#5
+                    ]) {
                       describe(`and frequency ${frequency}`, () => {
                         const sampleRate = 44100;
                         const input = inputType.arrayConverter(
@@ -233,22 +267,25 @@ describe("PitchDetector", () => {
                           )
                         );
 
+                        const [pitch, clarity] = findPitch(input, sampleRate);
+
                         test("finds the pitch to within 1% error", () => {
-                          expect(
-                            findPitch(input, sampleRate)[0]
-                          ).toBeWithinPercent(frequency, 1);
+                          expect(pitch).toBeWithinPercent(frequency, 1);
+                        });
+
+                        test(`finds the pitch to within ${waveform.maxCents} cents`, () => {
+                          expect(pitch).toBeWithinCents(
+                            frequency,
+                            waveform.maxCents
+                          );
                         });
 
                         test(`finds at least a clarity of ${waveform.minClarity}`, () => {
-                          expect(
-                            findPitch(input, sampleRate)[1]
-                          ).toBeGreaterThan(waveform.minClarity);
+                          expect(clarity).toBeGreaterThan(waveform.minClarity);
                         });
 
                         test("finds at most a clarity of 1.0", () => {
-                          expect(
-                            findPitch(input, sampleRate)[1]
-                          ).toBeLessThanOrEqual(1.0);
+                          expect(clarity).toBeLessThanOrEqual(1.0);
                         });
                       });
                     }
