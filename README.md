@@ -25,7 +25,7 @@ following `script` tag in your page and then access the contents of the library
 under the `pitchy` global object:
 
 ```html
-<script src="https://unpkg.com/pitchy@2.0.3/umd/index.js"></script>
+<script src="https://unpkg.com/pitchy@2.1.0/umd/index.js"></script>
 ```
 
 ## Usage
