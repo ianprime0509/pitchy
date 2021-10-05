@@ -172,6 +172,12 @@ describe("PitchDetector", () => {
         "Input must have length 8 but had length 3"
       );
     });
+
+    test("returns a clarity of 0 when given an array of zeros", () => {
+      const detector = float32InputType.supplier(2048);
+      const zeros = new Float32Array(2048);
+      expect(detector.findPitch(zeros, 48000)[1]).toBe(0);
+    });
   });
 
   interface InputType<T extends Buffer> {
@@ -180,23 +186,23 @@ describe("PitchDetector", () => {
     arrayConverter: (arr: number[]) => T;
   }
 
-  const inputTypes: InputType<Buffer>[] = [
-    {
-      description: "<Float32Array>",
-      supplier: PitchDetector.forFloat32Array,
-      arrayConverter: (arr): Float32Array => Float32Array.from(arr),
-    },
-    {
-      description: "<Float64Array>",
-      supplier: PitchDetector.forFloat64Array,
-      arrayConverter: (arr): Float64Array => Float64Array.from(arr),
-    },
-    {
-      description: "<number[]>",
-      supplier: PitchDetector.forNumberArray,
-      arrayConverter: (arr): number[] => arr,
-    },
-  ];
+  const float32InputType: InputType<Float32Array> = {
+    description: "<Float32Array>",
+    supplier: PitchDetector.forFloat32Array,
+    arrayConverter: (arr): Float32Array => Float32Array.from(arr),
+  };
+  const float64InputType: InputType<Float64Array> = {
+    description: "<Float64Array>",
+    supplier: PitchDetector.forFloat64Array,
+    arrayConverter: (arr): Float64Array => Float64Array.from(arr),
+  };
+  const numberArrayInputType: InputType<number[]> = {
+    description: "<number[]>",
+    supplier: PitchDetector.forNumberArray,
+    arrayConverter: (arr): number[] => arr,
+  };
+
+  const inputTypes = [float32InputType, float64InputType, numberArrayInputType];
 
   interface Waveform {
     name: string;
@@ -205,105 +211,128 @@ describe("PitchDetector", () => {
     maxCents: number;
   }
 
+  const sineWaveform: Waveform = {
+    name: "sine wave",
+    generator: sineWave,
+    minClarity: 0.99,
+    maxCents: 2,
+  };
+  const squareWaveform: Waveform = {
+    name: "square wave",
+    generator: squareWave,
+    minClarity: 0.97,
+    maxCents: 3,
+  };
+  const triangleWaveform: Waveform = {
+    name: "triangle wave",
+    generator: triangleWave,
+    minClarity: 0.99,
+    maxCents: 2,
+  };
+  const sawtoothWaveform = {
+    name: "sawtooth wave",
+    generator: sawtoothWave,
+    minClarity: 0.95,
+    maxCents: 3,
+  };
+
   const waveforms: Waveform[] = [
-    {
-      name: "sine wave",
-      generator: sineWave,
-      minClarity: 0.99,
-      maxCents: 2,
-    },
-    {
-      name: "square wave",
-      generator: squareWave,
-      minClarity: 0.97,
-      maxCents: 4,
-    },
-    {
-      name: "triangle wave",
-      generator: triangleWave,
-      minClarity: 0.99,
-      maxCents: 2,
-    },
-    {
-      name: "sawtooth wave",
-      generator: sawtoothWave,
-      minClarity: 0.95,
-      maxCents: 4,
-    },
+    sineWaveform,
+    squareWaveform,
+    triangleWaveform,
+    sawtoothWaveform,
   ];
 
-  for (const bufferType of inputTypes) {
-    describe(bufferType.description, () => {
-      describe("findPitch()", () => {
-        const findPitch = (
-          input: ArrayLike<number>,
-          sampleRate: number
-        ): [number, number] => {
-          const detector = bufferType.supplier(input.length);
-          return detector.findPitch(input, sampleRate);
-        };
+  const runTests = (
+    bufferType: InputType<Buffer>,
+    inputType: InputType<Buffer>,
+    waveform: Waveform,
+    amplitude: number,
+    frequency: number,
+    sampleRate: number,
+    windowSize: number
+  ): void => {
+    const findPitch = (
+      input: ArrayLike<number>,
+      sampleRate: number
+    ): [number, number] => {
+      const detector = bufferType.supplier(input.length);
+      return detector.findPitch(input, sampleRate);
+    };
 
-        for (const inputType of inputTypes) {
-          describe(`input: ${inputType.description}`, () => {
-            for (const waveform of waveforms) {
-              describe(`with a ${waveform.name}`, () => {
-                for (const amplitude of [0.5, 1.0, 2.0]) {
-                  describe(`of amplitude ${amplitude}`, () => {
-                    for (const frequency of [
-                      440, // A4
-                      880, // A5
-                      245,
-                      100,
-                      440 * 2 ** (9 / 12), // F#5
-                    ]) {
-                      describe(`and frequency ${frequency}`, () => {
-                        const sampleRate = 44100;
-                        const input = inputType.arrayConverter(
-                          waveform.generator(
-                            1000,
-                            frequency,
-                            amplitude,
-                            sampleRate
-                          )
-                        );
+    const input = inputType.arrayConverter(
+      waveform.generator(windowSize, frequency, amplitude, sampleRate)
+    );
 
-                        const [pitch, clarity] = findPitch(input, sampleRate);
+    const [pitch, clarity] = findPitch(input, sampleRate);
 
-                        test("finds the pitch to within 1% error", () => {
-                          expect(pitch).toBeWithinPercent(frequency, 1);
-                        });
+    describe(`findPitch() {input: ${inputType.description}, waveform: ${waveform.name}, amplitude: ${amplitude}, frequency: ${frequency}, sample rate: ${sampleRate}, window size: ${windowSize}}`, () => {
+      test("finds the pitch to within 1% error", () => {
+        expect(pitch).toBeWithinPercent(frequency, 1);
+      });
 
-                        test(`finds the pitch to within ${waveform.maxCents} cents`, () => {
-                          expect(pitch).toBeWithinCents(
-                            frequency,
-                            waveform.maxCents
-                          );
-                        });
+      test(`finds the pitch to within ${waveform.maxCents} cents`, () => {
+        expect(pitch).toBeWithinCents(frequency, waveform.maxCents);
+      });
 
-                        test(`finds at least a clarity of ${waveform.minClarity}`, () => {
-                          expect(clarity).toBeGreaterThan(waveform.minClarity);
-                        });
+      test(`finds at least a clarity of ${waveform.minClarity}`, () => {
+        expect(clarity).toBeGreaterThan(waveform.minClarity);
+      });
 
-                        test("finds at most a clarity of 1.0", () => {
-                          expect(clarity).toBeLessThanOrEqual(1.0);
-                        });
-                      });
-                    }
-                  });
-                }
-              });
-            }
-
-            test("returns a clarity of 0 when given an array of zeros", () => {
-              const zeros = new Array(1000);
-              zeros.fill(0);
-              expect(findPitch(inputType.arrayConverter(zeros), 44100)[1]).toBe(
-                0
-              );
-            });
-          });
-        }
+      test("finds at most a clarity of 1.0", () => {
+        expect(clarity).toBeLessThanOrEqual(1.0);
       });
     });
+  };
+
+  // The primary buffer and input types are expected to be Float32Array. For
+  // other combinations, we run reduced test sets so that the number of tests
+  // doesn't explode too much.
+  for (const bufferType of [float64InputType, numberArrayInputType]) {
+    describe(bufferType.description, () => {
+      for (const inputType of inputTypes) {
+        runTests(bufferType, inputType, sineWaveform, 1.0, 440, 48000, 2048);
+      }
+    });
   }
+
+  describe(float32InputType.description, () => {
+    for (const inputType of [float64InputType, numberArrayInputType]) {
+      runTests(
+        float32InputType,
+        inputType,
+        sineWaveform,
+        1.0,
+        440,
+        48000,
+        2048
+      );
+    }
+
+    for (const waveform of waveforms) {
+      for (const amplitude of [0.5, 1.0, 2.0]) {
+        for (const frequency of [
+          440, // A4
+          880, // A5
+          245,
+          100,
+          440 * 2 ** (9 / 12), // F#5
+        ]) {
+          for (const sampleRate of [44100, 48000]) {
+            for (const inputSize of [2048, 4092]) {
+              runTests(
+                float32InputType,
+                float32InputType,
+                waveform,
+                amplitude,
+                frequency,
+                sampleRate,
+                inputSize
+              );
+            }
+          }
+        }
+      }
+    }
+  });
 });
