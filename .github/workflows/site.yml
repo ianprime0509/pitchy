@@ -1,0 +1,32 @@
+name: Publish project site
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16'
+      - name: Build pitchy
+        run: |
+          npm ci
+          npm run build
+      - name: Build site
+        run: |
+          npm ci
+          npm run build
+        working-directory: website
+      - name: Publish site
+        uses: crazy-max/ghaction-github-pages@v2
+        if: success()
+        with:
+          target_branch: gh-pages
+          build_dir: website/build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

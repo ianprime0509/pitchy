@@ -8,7 +8,7 @@
   <body>
     <div>Pitch: <span id="pitch">0</span></div>
     <div>Clarity: <span id="clarity">0</span></div>
-    <br>
+    <br />
     <div>
       On some browsers (such as Chrome), audio contexts will not work until they
       are resumed following a user input or gesture on the page, to prevent
@@ -43,8 +43,7 @@
           .addEventListener("click", () => audioContext.resume());
 
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-          let sourceNode = audioContext.createMediaStreamSource(stream);
-          sourceNode.connect(analyserNode);
+          audioContext.createMediaStreamSource(stream).connect(analyserNode);
           const detector = pitchy.PitchDetector.forFloat32Array(
             analyserNode.fftSize
           );
