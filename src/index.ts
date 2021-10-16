@@ -9,6 +9,10 @@
 import FFT from "fft.js";
 import np2 from "next-pow-2";
 
+/**
+ * One of the supported buffer types. Other numeric array types may not work
+ * correctly.
+ */
 export type Buffer = Float32Array | Float64Array | number[];
 
 /**
