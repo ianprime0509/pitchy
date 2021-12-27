@@ -10,11 +10,10 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: ["fft.js", "next-pow-2"],
+      external: ["fft.js"],
       output: {
         globals: {
           "fft.js": "fft",
-          "next-pow-2": "np2",
         },
       },
     },
