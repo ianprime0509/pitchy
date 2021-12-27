@@ -1,5 +1,6 @@
 import FFT from "fft.js";
-import np2 from "next-pow-2";
+
+import { ceilPow2 } from "./util";
 
 /**
  * One of the supported buffer types. Other numeric array types may not work
@@ -85,7 +86,7 @@ export class Autocorrelator<T extends Buffer> {
     this._inputLength = inputLength;
     // We need to double the input length to get correct results, and the FFT
     // algorithm we use requires a length that's a power of 2
-    this._fft = new FFT(np2(2 * inputLength));
+    this._fft = new FFT(ceilPow2(2 * inputLength));
     this._bufferSupplier = bufferSupplier;
     this._paddedInputBuffer = this._bufferSupplier(this._fft.size);
     this._transformBuffer = this._bufferSupplier(2 * this._fft.size);

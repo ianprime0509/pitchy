@@ -46,8 +46,7 @@
   },
   "homepage": "https://github.com/ianprime0509/pitchy#readme",
   "dependencies": {
-    "fft.js": "^4.0.4",
-    "next-pow-2": "^1.0.0"
+    "fft.js": "^4.0.4"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
