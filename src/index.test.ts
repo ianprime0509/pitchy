@@ -1,12 +1,4 @@
-/*
- * Copyright 2018 Ian Johnson
- *
- * This is free software, distributed under the MIT license.  A copy of the
- * license can be found in the LICENSE file in the project root, or at
- * https://opensource.org/licenses/MIT.
- */
 /* eslint-env jest */
-
 import { Autocorrelator, Buffer, PitchDetector } from ".";
 
 import { toBeDeepCloseTo } from "jest-matcher-deep-close-to";
@@ -15,7 +7,7 @@ import toBeWithinPercent from "jest-matcher-percent-error";
 expect.extend({ toBeDeepCloseTo, toBeWithinPercent });
 
 expect.extend({
-  toBeWithinCents(received, expected, cents) {
+  toBeWithinCents(received: number, expected: number, cents: number) {
     const centsDiff = 1200 * Math.log2(received / expected);
     const pass = Math.abs(centsDiff) <= cents;
     return {
@@ -47,7 +39,7 @@ type WaveformGenerator = (
 function waveform(unitWave: (t: number) => number): WaveformGenerator {
   return (length, pitch, amplitude, sampleRate): number[] => {
     const frequency = pitch / sampleRate;
-    const result = new Array(length);
+    const result = Array<number>(length);
 
     for (let i = 0; i < result.length; i++) {
       result[i] = amplitude * unitWave(frequency * i);

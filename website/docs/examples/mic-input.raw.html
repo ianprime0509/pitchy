@@ -16,8 +16,9 @@
       this button to resume the audio context:
       <button id="resume-button">Resume audio context</button>
     </div>
-    <script src="https://unpkg.com/pitchy@2.1.0/umd/index.js"></script>
-    <script>
+    <script type="module">
+      import { PitchDetector } from "https://esm.sh/pitchy@3";
+
       function updatePitch(analyserNode, detector, input, sampleRate) {
         analyserNode.getFloatTimeDomainData(input);
         const [pitch, clarity] = detector.findPitch(input, sampleRate);
@@ -44,9 +45,7 @@
 
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
           audioContext.createMediaStreamSource(stream).connect(analyserNode);
-          const detector = pitchy.PitchDetector.forFloat32Array(
-            analyserNode.fftSize
-          );
+          const detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
           const input = new Float32Array(detector.inputLength);
           updatePitch(analyserNode, detector, input, audioContext.sampleRate);
         });

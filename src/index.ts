@@ -1,11 +1,3 @@
-/*
- * Copyright 2018-2020 Ian Johnson
- *
- * This is free software, distributed under the MIT license. A copy of the
- * license can be found in the LICENSE file in the project root, or at
- * https://opensource.org/licenses/MIT.
- */
-
 import FFT from "fft.js";
 import np2 from "next-pow-2";
 
@@ -38,7 +30,10 @@ export class Autocorrelator<T extends Buffer> {
    *
    * @param inputLength - the input array length to support
    */
-  static forFloat32Array(inputLength: number): Autocorrelator<Float32Array> {
+  static forFloat32Array(
+    this: void,
+    inputLength: number
+  ): Autocorrelator<Float32Array> {
     return new Autocorrelator(
       inputLength,
       (length) => new Float32Array(length)
@@ -50,7 +45,10 @@ export class Autocorrelator<T extends Buffer> {
    *
    * @param inputLength - the input array length to support
    */
-  static forFloat64Array(inputLength: number): Autocorrelator<Float64Array> {
+  static forFloat64Array(
+    this: void,
+    inputLength: number
+  ): Autocorrelator<Float64Array> {
     return new Autocorrelator(
       inputLength,
       (length) => new Float64Array(length)
@@ -62,8 +60,11 @@ export class Autocorrelator<T extends Buffer> {
    *
    * @param inputLength - the input array length to support
    */
-  static forNumberArray(inputLength: number): Autocorrelator<number[]> {
-    return new Autocorrelator(inputLength, (length) => Array(length));
+  static forNumberArray(
+    this: void,
+    inputLength: number
+  ): Autocorrelator<number[]> {
+    return new Autocorrelator(inputLength, (length) => Array<number>(length));
   }
 
   /**
@@ -261,7 +262,10 @@ export class PitchDetector<T extends Buffer> {
    *
    * @param inputLength - the input array length to support
    */
-  static forFloat32Array(inputLength: number): PitchDetector<Float32Array> {
+  static forFloat32Array(
+    this: void,
+    inputLength: number
+  ): PitchDetector<Float32Array> {
     return new PitchDetector(inputLength, (length) => new Float32Array(length));
   }
 
@@ -270,7 +274,10 @@ export class PitchDetector<T extends Buffer> {
    *
    * @param inputLength - the input array length to support
    */
-  static forFloat64Array(inputLength: number): PitchDetector<Float64Array> {
+  static forFloat64Array(
+    this: void,
+    inputLength: number
+  ): PitchDetector<Float64Array> {
     return new PitchDetector(inputLength, (length) => new Float64Array(length));
   }
 
@@ -279,8 +286,11 @@ export class PitchDetector<T extends Buffer> {
    *
    * @param inputLength - the input array length to support
    */
-  static forNumberArray(inputLength: number): PitchDetector<number[]> {
-    return new PitchDetector(inputLength, (length) => Array(length));
+  static forNumberArray(
+    this: void,
+    inputLength: number
+  ): PitchDetector<number[]> {
+    return new PitchDetector(inputLength, (length) => Array<number>(length));
   }
 
   /**
