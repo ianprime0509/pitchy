@@ -1,0 +1,6 @@
+.vscode
+dist
+node_modules
+website/.docusaurus
+website/build
+website/docs/api
