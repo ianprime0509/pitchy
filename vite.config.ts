@@ -6,7 +6,8 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
       name: "Pitchy",
-      fileName: (format) => `pitchy.${format}.js`,
+      fileName: (format) =>
+        `pitchy.${format}.${format === "es" ? "mjs" : "cjs"}`,
     },
     sourcemap: true,
     rollupOptions: {
