@@ -25,7 +25,7 @@
     "raw-loader": "^4.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "temperament": "^3.0.1",
+    "temperament": "^3.0.2",
     "typedoc": "^0.22.10",
     "typedoc-plugin-markdown": "^3.11.8",
     "typescript": "^4.5.4",
