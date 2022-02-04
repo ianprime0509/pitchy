@@ -33,10 +33,31 @@ CommonJS code, albeit only in async contexts, using dynamic `import`:
 const { PitchDetector } = await import("pitchy");
 ```
 
-## Examples and documentation
+## Usage
 
-For examples and documentation, see the
-[project site](https://ianjohnson.dev/pitchy).
+The main functionality of this module is exposed by the `PitchDetector` class.
+Instances of `PitchDetector` are generally created using one of the three static
+helper methods corresponding to the desired output buffer type:
+
+- `PitchDetector.forFloat32Array(inputLength)`
+- `PitchDetector.forFloat64Array(inputLength)`
+- `PitchDetector.forNumberArray(inputLength)`
+
+Once a `PitchDetector` instance is created, the `findPitch(input, sampleRate)`
+method can be used to find the pitch of the time-domain data in `input`,
+returning an array consisting of the detected pitch (in Hz) and a "clarity"
+measure from 0 to 1 that indicates how "clear" the pitch is (low values indicate
+noise rather than a true pitch).
+
+For efficiency reasons, the input to the `findPitch` method must always have the
+length indicated by the `inputLength` that was passed when constructing the
+`PitchDetector`.
+
+An `Autocorrelator` class with a similar interface to `PitchDetector` is exposed
+for those who want to use the autocorrelation function for other things.
+
+A simple usage example is available on
+[GitHub Pages](https://ianjohnson.dev/pitchy).
 
 ## License
 

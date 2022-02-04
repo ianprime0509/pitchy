@@ -4,11 +4,63 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pitchy simple example</title>
+
+    <style>
+      body {
+        background: #eee;
+        color: #111;
+        font-family: system-ui, -apple-system;
+        margin: 1rem auto;
+        max-width: 80ch;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      pre {
+        background: #ddd;
+        padding: 0.5rem;
+      }
+
+      .label {
+        font-weight: bold;
+      }
+    </style>
+
+    <noscript>
+      <style>
+        /* Slightly uglier fallback for populating the code display dynamically */
+        script {
+          background: #ddd;
+          display: block;
+          padding: 0.5rem;
+          white-space: pre-wrap;
+        }
+      </style>
+    </noscript>
   </head>
   <body>
-    <div>Pitch: <span id="pitch">0</span></div>
-    <div>Clarity: <span id="clarity">0</span></div>
-    <br />
+    <h1>Pitchy example</h1>
+
+    <p>
+      This page is a simple example of how to use
+      <a href="https://github.com/ianprime0509/pitchy">Pitchy</a> for pitch
+      detection. See the bottom of the page for the code powering the pitch and
+      clarity displays below.
+    </p>
+
+    <div>
+      <span id="pitch-label" class="label">Pitch</span>
+      <span id="pitch" aria-labelledby="pitch-label">0</span>
+    </div>
+    <div>
+      <span id="clarity-label" class="label">Clarity</span>
+      <span id="clarity" aria-labelledby="clarity-label">0</span>
+    </div>
+
+    <hr />
+
     <div>
       On some browsers (such as Chrome), audio contexts will not work until they
       are resumed following a user input or gesture on the page, to prevent
@@ -16,7 +68,10 @@
       this button to resume the audio context:
       <button id="resume-button">Resume audio context</button>
     </div>
-    <script type="module">
+
+    <pre><code id="code-display" aria-label="Pitchy usage code"></code></pre>
+
+    <script id="code" type="module">
       import { PitchDetector } from "https://esm.sh/pitchy@3";
 
       function updatePitch(analyserNode, detector, input, sampleRate) {
@@ -49,6 +104,18 @@
           const input = new Float32Array(detector.inputLength);
           updatePitch(analyserNode, detector, input, audioContext.sampleRate);
         });
+      });
+    </script>
+
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", () => {
+        let code = document.getElementById("code").innerText;
+        // Fix indentation
+        code = code.replace(/^\n*|\s*$/g, "");
+        const indent = code.match(/^\s*/)[0];
+        code = code.replaceAll(indent, "");
+
+        document.getElementById("code-display").innerText = code;
       });
     </script>
   </body>
