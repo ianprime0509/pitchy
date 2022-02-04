@@ -1,12 +1,9 @@
 import FFT from "fft.js";
 
-import { ceilPow2 } from "./util";
-
 /**
- * One of the supported buffer types. Other numeric array types may not work
- * correctly.
+ * @typedef {Float32Array | Float64Array | number[]} Buffer One of the supported
+ * buffer types. Other numeric array types may not work correctly.
  */
-export type Buffer = Float32Array | Float64Array | number[];
 
 /**
  * A class that can perform autocorrelation on input arrays of a given size.
@@ -14,27 +11,32 @@ export type Buffer = Float32Array | Float64Array | number[];
  * The class holds internal buffers so that no additional allocations are
  * necessary while performing the operation.
  *
- * @typeParam T - the buffer type to use. While inputs to the autocorrelation
- * process can be any array-like type, the output buffer (whether provided
- * explicitly or using a fresh buffer) is always of this type.
+ * @template {Buffer} T the buffer type to use. While inputs to the
+ * autocorrelation process can be any array-like type, the output buffer
+ * (whether provided explicitly or using a fresh buffer) is always of this type.
  */
-export class Autocorrelator<T extends Buffer> {
-  private readonly _inputLength: number;
-  private _fft: FFT;
-  private _bufferSupplier: (size: number) => T;
-  private _paddedInputBuffer: T;
-  private _transformBuffer: T;
-  private _inverseBuffer: T;
+export class Autocorrelator {
+  /** @private @readonly @type {number} */
+  _inputLength;
+  /** @private @type {FFT} */
+  _fft;
+  /** @private @type {(size: number) => T} */
+  _bufferSupplier;
+  /** @private @type {T} */
+  _paddedInputBuffer;
+  /** @private @type {T} */
+  _transformBuffer;
+  /** @private @type {T} */
+  _inverseBuffer;
 
   /**
-   * A helper method to create an {@link Autocorrelator} using {@link Float32Array} buffers.
+   * A helper method to create an {@link Autocorrelator} using
+   * {@link Float32Array} buffers.
    *
-   * @param inputLength - the input array length to support
+   * @param inputLength {number} the input array length to support
+   * @returns {Autocorrelator<Float32Array>}
    */
-  static forFloat32Array(
-    this: void,
-    inputLength: number
-  ): Autocorrelator<Float32Array> {
+  static forFloat32Array(inputLength) {
     return new Autocorrelator(
       inputLength,
       (length) => new Float32Array(length)
@@ -42,14 +44,13 @@ export class Autocorrelator<T extends Buffer> {
   }
 
   /**
-   * A helper method to create an {@link Autocorrelator} using {@link Float64Array} buffers.
+   * A helper method to create an {@link Autocorrelator} using
+   * {@link Float64Array} buffers.
    *
-   * @param inputLength - the input array length to support
+   * @param inputLength {number} the input array length to support
+   * @returns {Autocorrelator<Float64Array>}
    */
-  static forFloat64Array(
-    this: void,
-    inputLength: number
-  ): Autocorrelator<Float64Array> {
+  static forFloat64Array(inputLength) {
     return new Autocorrelator(
       inputLength,
       (length) => new Float64Array(length)
@@ -57,29 +58,28 @@ export class Autocorrelator<T extends Buffer> {
   }
 
   /**
-   * A helper method to create an {@link Autocorrelator} using `number[]` buffers.
+   * A helper method to create an {@link Autocorrelator} using `number[]`
+   * buffers.
    *
-   * @param inputLength - the input array length to support
+   * @param inputLength {number} the input array length to support
+   * @returns {Autocorrelator<number[]>}
    */
-  static forNumberArray(
-    this: void,
-    inputLength: number
-  ): Autocorrelator<number[]> {
-    return new Autocorrelator(inputLength, (length) => Array<number>(length));
+  static forNumberArray(inputLength) {
+    return new Autocorrelator(inputLength, (length) => Array(length));
   }
 
   /**
    * Constructs a new {@link Autocorrelator} able to handle input arrays of the
    * given length.
    *
-   * @param inputLength - the input array length to support. This `Autocorrelator`
-   * will only support operation on arrays of this length.
-   * @param bufferSupplier - the function to use for creating buffers, accepting
-   * the length of the buffer to create and returning a new buffer of that
-   * length. The values of the returned buffer need not be initialized in any
-   * particular way.
+   * @param inputLength {number} the input array length to support. This
+   * `Autocorrelator` will only support operation on arrays of this length.
+   * @param bufferSupplier {(length: number) => T} the function to use for
+   * creating buffers, accepting the length of the buffer to create and
+   * returning a new buffer of that length. The values of the returned buffer
+   * need not be initialized in any particular way.
    */
-  constructor(inputLength: number, bufferSupplier: (length: number) => T) {
+  constructor(inputLength, bufferSupplier) {
     if (inputLength < 1) {
       throw new Error(`Input length must be at least one`);
     }
@@ -96,24 +96,21 @@ export class Autocorrelator<T extends Buffer> {
   /**
    * Returns the supported input length.
    *
-   * @returns the supported input length
+   * @returns {number} the supported input length
    */
-  get inputLength(): number {
+  get inputLength() {
     return this._inputLength;
   }
 
   /**
    * Autocorrelates the given input data.
    *
-   * @param input - the input data to autocorrelate
-   * @param output - the output buffer into which to write the autocorrelated
+   * @param input {ArrayLike<number>} the input data to autocorrelate
+   * @param output {T} the output buffer into which to write the autocorrelated
    * data. If not provided, a new buffer will be created.
-   * @returns `output`
+   * @returns {T} `output`
    */
-  autocorrelate(
-    input: ArrayLike<number>,
-    output: T = this._bufferSupplier(input.length)
-  ): T {
+  autocorrelate(input, output = this._bufferSupplier(input.length)) {
     if (input.length !== this._inputLength) {
       throw new Error(
         `Input must have length ${this._inputLength} but had length ${input.length}`
@@ -158,10 +155,13 @@ export class Autocorrelator<T extends Buffer> {
  * TODO: it may be more efficient not to construct a new output array each time,
  * but that would also make the code more complicated (more so than the changes
  * that were needed to remove the other allocations).
+ *
+ * @param input {ArrayLike<number>}
+ * @returns {number[]}
  */
-function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
+function getKeyMaximumIndices(input) {
   // The indices of the key maxima
-  const keyIndices: number[] = [];
+  /** @type {number[]} */ const keyIndices = [];
   // Whether the last zero crossing found was positively sloped; equivalently,
   // whether we're looking for a key maximum
   let lookingForMaximum = false;
@@ -199,18 +199,15 @@ function getKeyMaximumIndices(input: ArrayLike<number>): number[] {
  * This is described in section 5 of the MPM paper as a way to refine the
  * position of the maximum.
  *
- * @param index - the chosen key maximum index. This must be between `1` and
- * `data.length - 2`, inclusive, since it and its two neighbors need to be valid
- * indexes of `data`.
- * @param data - the input array from which `index` was chosen
- * @returns a pair consisting of the refined key maximum index and the
+ * @param index {number} the chosen key maximum index. This must be between `1`
+ * and `data.length - 2`, inclusive, since it and its two neighbors need to be
+ * valid indexes of `data`.
+ * @param data {ArrayLike<number>} the input array from which `index` was chosen
+ * @returns {[number, number]} a pair consisting of the refined key maximum index and the
  * interpolated value of `data` at that index (the latter of which is used as a
  * measure of clarity)
  */
-function refineResultIndex(
-  index: number,
-  data: ArrayLike<number>
-): [number, number] {
+function refineResultIndex(index, data) {
   const [x0, x1, x2] = [index - 1, index, index + 1];
   const [y0, y1, y2] = [data[x0], data[x1], data[x2]];
 
@@ -249,63 +246,60 @@ function refineResultIndex(
  * The class holds internal buffers so that a minimal number of additional
  * allocations are necessary while performing the operation.
  *
- * @typeParam T - the buffer type to use internally. Inputs to the
+ * @template {Buffer} T the buffer type to use internally. Inputs to the
  * pitch-detection process can be any numeric array type.
  */
-export class PitchDetector<T extends Buffer> {
-  private _autocorrelator: Autocorrelator<T>;
-  private _nsdfBuffer: T;
+export class PitchDetector {
+  /** @private @type {Autocorrelator<T>} */
+  _autocorrelator;
+  /** @private @type {T} */
+  _nsdfBuffer;
   // TODO: it might be nice if this were configurable
-  private readonly _clarityThreshold = 0.9;
+  /** @private @readonly */
+  _clarityThreshold = 0.9;
 
   /**
    * A helper method to create an {@link PitchDetector} using {@link Float32Array} buffers.
    *
-   * @param inputLength - the input array length to support
+   * @param inputLength {number} the input array length to support
+   * @returns {PitchDetector<Float32Array>}
    */
-  static forFloat32Array(
-    this: void,
-    inputLength: number
-  ): PitchDetector<Float32Array> {
+  static forFloat32Array(inputLength) {
     return new PitchDetector(inputLength, (length) => new Float32Array(length));
   }
 
   /**
    * A helper method to create an {@link PitchDetector} using {@link Float64Array} buffers.
    *
-   * @param inputLength - the input array length to support
+   * @param inputLength {number} the input array length to support
+   * @returns {PitchDetector<Float64Array>}
    */
-  static forFloat64Array(
-    this: void,
-    inputLength: number
-  ): PitchDetector<Float64Array> {
+  static forFloat64Array(inputLength) {
     return new PitchDetector(inputLength, (length) => new Float64Array(length));
   }
 
   /**
    * A helper method to create an {@link PitchDetector} using `number[]` buffers.
    *
-   * @param inputLength - the input array length to support
+   * @param inputLength {number} the input array length to support
+   * @returns {PitchDetector<number[]>}
    */
-  static forNumberArray(
-    this: void,
-    inputLength: number
-  ): PitchDetector<number[]> {
-    return new PitchDetector(inputLength, (length) => Array<number>(length));
+  static forNumberArray(inputLength) {
+    return new PitchDetector(inputLength, (length) => Array(length));
   }
 
   /**
    * Constructs a new {@link PitchDetector} able to handle input arrays of the
    * given length.
    *
-   * @param inputLength - the input array length to support. This
+   * @param inputLength {number} the input array length to support. This
    * `PitchDetector` will only support operation on arrays of this length.
-   * @param bufferSupplier - the function to use for creating buffers, accepting
-   * the length of the buffer to create and returning a new buffer of that
-   * length. The values of the returned buffer need not be initialized in any
-   * particular way.
+   * @param bufferSupplier {(inputLength: number) => T} the function to use for
+   * creating buffers, accepting the length of the buffer to create and
+   * returning a new buffer of that length. The values of the returned buffer
+   * need not be initialized in any particular way.
    */
-  constructor(inputLength: number, bufferSupplier: (inputLength: number) => T) {
+  constructor(inputLength, bufferSupplier) {
     this._autocorrelator = new Autocorrelator(inputLength, bufferSupplier);
     this._nsdfBuffer = bufferSupplier(inputLength);
   }
@@ -313,9 +307,9 @@ export class PitchDetector<T extends Buffer> {
   /**
    * Returns the supported input length.
    *
-   * @returns the supported input length
+   * @returns {number} the supported input length
    */
-  get inputLength(): number {
+  get inputLength() {
     return this._autocorrelator.inputLength;
   }
 
@@ -328,11 +322,12 @@ export class PitchDetector<T extends Buffer> {
    * the pitch was very distinct, while lower clarity values indicate less
    * definite pitches.
    *
-   * @param input - the time-domain input data
-   * @param sampleRate - the sample rate at which the input data was collected
-   * @returns the detected pitch, in Hz, followed by the clarity
+   * @param input {ArrayLike<number>} the time-domain input data
+   * @param sampleRate {number} the sample rate at which the input data was
+   * collected
+   * @returns {[number, number]} the detected pitch, in Hz, followed by the clarity
    */
-  findPitch(input: ArrayLike<number>, sampleRate: number): [number, number] {
+  findPitch(input, sampleRate) {
     this._nsdf(input);
     const keyMaximumIndices = getKeyMaximumIndices(this._nsdfBuffer);
     if (keyMaximumIndices.length === 0) {
@@ -346,11 +341,11 @@ export class PitchDetector<T extends Buffer> {
     // maximum higher than K * nMax. This is guaranteed not to be undefined, since
     // we know of at least one key maximum satisfying this condition (whichever
     // key maximum gave us nMax).
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const resultIndex = keyMaximumIndices.find(
       (i) => this._nsdfBuffer[i] >= this._clarityThreshold * nMax
-    )!;
+    );
     const [refinedResultIndex, clarity] = refineResultIndex(
+      // @ts-expect-error resultIndex is guaranteed to be defined
       resultIndex,
       this._nsdfBuffer
     );
@@ -363,8 +358,11 @@ export class PitchDetector<T extends Buffer> {
   /**
    * Computes the NSDF of the input and stores it in the internal buffer. This
    * is equation (9) in the McLeod pitch method paper.
+   *
+   * @private
+   * @param input {ArrayLike<number>}
    */
-  private _nsdf(input: ArrayLike<number>): void {
+  _nsdf(input) {
     // The function r'(tau) is the autocorrelation
     this._autocorrelator.autocorrelate(input, this._nsdfBuffer);
     // The function m'(tau) (defined in equation (6)) can be computed starting
@@ -377,7 +375,7 @@ export class PitchDetector<T extends Buffer> {
     // The resulting array values are 2 * r'(tau) / m'(tau). We use m below as
     // the incremental value of m'.
     let m = 2 * this._nsdfBuffer[0];
-    let i: number;
+    /** @type {number} */ let i;
     // As pointed out by issuefiler on GitHub, we can take advantage of the fact
     // that m will never increase to avoid division by zero by ending this loop
     // once m === 0. The rest of the array values after m becomes 0 will just be
@@ -394,4 +392,22 @@ export class PitchDetector<T extends Buffer> {
       this._nsdfBuffer[i] = 0;
     }
   }
+}
+
+/**
+ * Rounds up the input to the next power of 2.
+ *
+ * @param {number} v
+ * @returns {number} the next power of 2 at least as large as `v`
+ */
+function ceilPow2(v) {
+  // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+  v--;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v++;
+  return v;
 }
