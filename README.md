@@ -21,7 +21,16 @@ You can also use a CDN, such as [esm.sh](https://esm.sh), directly from a
 browser or Deno:
 
 ```js
-import { PitchDetector } from "https://esm.sh/pitchy@3";
+import { PitchDetector } from "https://esm.sh/pitchy@4";
+```
+
+Note that this package is
+[ESM-only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c),
+meaning it can't be used with `require`. However, it can still be used from
+CommonJS code, albeit only in async contexts, using dynamic `import`:
+
+```js
+const { PitchDetector } = await import("pitchy");
 ```
 
 ## Examples and documentation

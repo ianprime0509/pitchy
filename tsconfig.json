@@ -2,19 +2,11 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noImplicitOverride": true,
-    "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "noEmit": true,
+    "checkJs": true,
+    "strict": true
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["index.js", "test/*.js"]
 }

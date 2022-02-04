@@ -1,4 +1,4 @@
+*.d.ts
 .vscode
-dist
 node_modules
 website
