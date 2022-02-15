@@ -25,7 +25,7 @@
     "test:fmt": "prettier --check .",
     "test:lint": "eslint --ext .js,.cjs,.mjs .",
     "test:unit": "uvu",
-    "serve": "http-server -c-1 site"
+    "serve": "http-server -c-1 docs"
   },
   "repository": {
     "type": "git",
