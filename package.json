@@ -21,9 +21,9 @@
     "fmt": "prettier --write .",
     "prepack": "npm run build",
     "test": "run-p test:*",
-    "test:check": "tsc",
     "test:fmt": "prettier --check .",
     "test:lint": "eslint --ext .js,.cjs,.mjs .",
+    "test:types": "tsc",
     "test:unit": "uvu",
     "serve": "http-server -c-1 docs"
   },
