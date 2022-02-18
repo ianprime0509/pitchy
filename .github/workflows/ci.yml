@@ -2,27 +2,55 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, beta, alpha]
   pull_request:
-    branches: [main]
+    branches: [main, beta, alpha]
 
 jobs:
-  build:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+        env:
+          CI: true
+
+  test-compat:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [12, 14, 16, 17]
+        node-version: [14]
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Update NPM
-        run: npm install -g npm
       - run: npm ci
       - run: npm run build
       - run: npm test
         env:
           CI: true
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [test, test-compat]
+    if: success() && github.event_name != 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
