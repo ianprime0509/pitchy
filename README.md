@@ -9,6 +9,14 @@ tuners. To do this, it uses the McLeod Pitch Method, described in the paper
 [A Smarter Way to Find Pitch](http://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf)
 by Philip McLeod and Geoff Wyvill.
 
+**Note for v4 users:** as of v4, Pitchy is distributed as a pure ES module.
+There are several implications of this for using various build and test tools: a
+[Gist by sindresorhus](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
+gives a more detailed overview (including suggestions for various tools) than
+what can be covered in this README. The short version is that you may want to
+consider migrating your own project to ES modules. If all else fails, you can
+continue to use v3, as v4 contains no functional changes.
+
 ## Installation
 
 You can install pitchy using NPM (or similar tools such as Yarn):
