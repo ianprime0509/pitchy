@@ -9,6 +9,10 @@ tuners. To do this, it uses the McLeod Pitch Method, described in the paper
 [A Smarter Way to Find Pitch](http://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf)
 by Philip McLeod and Geoff Wyvill.
 
+A [playground page](https://ianjohnson.dev/pitchy/playground.html) is available
+to allow experimentation with the library and how different configurations may
+impact the quality of the results.
+
 **Note for v4 users:** as of v4, Pitchy is distributed as a pure ES module.
 There are several implications of this for using various build and test tools: a
 [Gist by sindresorhus](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
