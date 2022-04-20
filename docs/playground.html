@@ -50,6 +50,13 @@
       controls below the graph to tweak the configuration.
     </p>
 
+    <p>
+      If no input is being recorded, you may have to click this button to reset
+      the AudioContext, since some browsers (such as Chrome) will not allow an
+      AudioContext to start unless it is in response to a user action:
+      <button id="reset-audio-context">Reset audio context</button>
+    </p>
+
     <canvas
       id="pitch-graph"
       aria-label="Recorded pitch graph"
@@ -237,9 +244,12 @@
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#1e9be9";
         ctx.beginPath();
-        ctx.moveTo(x(0), y(history[0][0]));
-        for (let i = 1; i < history.length; i++) {
-          if (matchesConditions(history[i - 1])) {
+        for (let i = 0; i < history.length; i++) {
+          if (
+            i > 0 &&
+            matchesConditions(history[i - 1]) &&
+            matchesConditions(history[i])
+          ) {
             ctx.lineTo(x(i), y(history[i][0]));
           } else {
             ctx.moveTo(x(i), y(history[i][0]));
@@ -308,6 +318,12 @@
         inputBuffer = new Float32Array(detector.inputLength);
         actualInputBufferSize.innerText = inputBuffer.length.toFixed();
       }
+
+      document
+        .getElementById("reset-audio-context")
+        .addEventListener("click", () => {
+          resetAudioContext();
+        });
 
       document.getElementById("clear-history").addEventListener("click", () => {
         history.splice(0, history.length);
