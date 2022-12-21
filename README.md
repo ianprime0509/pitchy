@@ -1,7 +1,7 @@
 # pitchy
 
 [![npm](https://img.shields.io/npm/v/pitchy.svg)](https://www.npmjs.com/package/pitchy)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ianprime0509/pitchy/CI)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ianprime0509/pitchy/ci.yml?branch=main)
 
 pitchy is a simple pitch-detection library written entirely in JavaScript that
 aims to be fast and accurate enough to be used in real-time applications such as
