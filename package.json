@@ -52,13 +52,13 @@
     "fft.js": "^4.0.4"
   },
   "devDependencies": {
-    "eslint": "^8.18.0",
+    "eslint": "^8.36.0",
     "http-server": "^14.1.1",
     "npm-run-all": "^4.1.5",
-    "prettier": "2.8.3",
-    "rimraf": "^4.1.1",
-    "semantic-release": "^20.0.3",
-    "typescript": "^4.7.4",
-    "uvu": "^0.5.4"
+    "prettier": "2.8.7",
+    "rimraf": "^4.4.1",
+    "semantic-release": "^21.0.0",
+    "typescript": "^5.0.2",
+    "uvu": "^0.5.6"
   }
 }
