@@ -39,7 +39,7 @@ export class Autocorrelator {
   static forFloat32Array(inputLength) {
     return new Autocorrelator(
       inputLength,
-      (length) => new Float32Array(length)
+      (length) => new Float32Array(length),
     );
   }
 
@@ -53,7 +53,7 @@ export class Autocorrelator {
   static forFloat64Array(inputLength) {
     return new Autocorrelator(
       inputLength,
-      (length) => new Float64Array(length)
+      (length) => new Float64Array(length),
     );
   }
 
@@ -113,7 +113,7 @@ export class Autocorrelator {
   autocorrelate(input, output = this._bufferSupplier(input.length)) {
     if (input.length !== this._inputLength) {
       throw new Error(
-        `Input must have length ${this._inputLength} but had length ${input.length}`
+        `Input must have length ${this._inputLength} but had length ${input.length}`,
       );
     }
     // Step 0: pad the input array with zeros
@@ -342,12 +342,12 @@ export class PitchDetector {
     // we know of at least one key maximum satisfying this condition (whichever
     // key maximum gave us nMax).
     const resultIndex = keyMaximumIndices.find(
-      (i) => this._nsdfBuffer[i] >= this._clarityThreshold * nMax
+      (i) => this._nsdfBuffer[i] >= this._clarityThreshold * nMax,
     );
     const [refinedResultIndex, clarity] = refineResultIndex(
       // @ts-expect-error resultIndex is guaranteed to be defined
       resultIndex,
-      this._nsdfBuffer
+      this._nsdfBuffer,
     );
 
     // Due to floating point errors, the clarity may occasionally come out to be

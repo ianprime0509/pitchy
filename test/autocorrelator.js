@@ -37,11 +37,11 @@ const test = suite("Autocorrelator");
 test("constructor throws an error if the input length is too small", () => {
   assert.throws(
     () => new Autocorrelator(0, (length) => new Float32Array(length)),
-    "Input length must be at least one"
+    "Input length must be at least one",
   );
   assert.throws(
     () => new Autocorrelator(-5, (length) => new Float32Array(length)),
-    "Input length must be at least one"
+    "Input length must be at least one",
   );
 });
 
@@ -53,7 +53,7 @@ test("autocorrelate throws an error if the input is not of the configured input 
   const autocorrelator = Autocorrelator.forFloat32Array(5);
   assert.throws(
     () => autocorrelator.autocorrelate(Float32Array.of(1, 2, 3)),
-    "Input must have length 5 but had length 3"
+    "Input must have length 5 but had length 3",
   );
 });
 
@@ -67,7 +67,7 @@ for (const bufferType of inputTypes) {
       const assertAutocorrelationIs = (input, expects) => {
         const autocorrelator = bufferType.supplier(input.length);
         const actual = Array.from(
-          autocorrelator.autocorrelate(inputType.arrayConverter(input))
+          autocorrelator.autocorrelate(inputType.arrayConverter(input)),
         );
 
         let match = actual.length === expects.length;
@@ -81,7 +81,7 @@ for (const bufferType of inputTypes) {
         }
         if (!match) {
           assert.unreachable(
-            `expected autocorrelation of ${input} to be ${expects}, got ${actual}`
+            `expected autocorrelation of ${input} to be ${expects}, got ${actual}`,
           );
         }
       };
@@ -92,7 +92,7 @@ for (const bufferType of inputTypes) {
       assertAutocorrelationIs([1, 2, 3, 4], [30, 20, 11, 4]);
       assertAutocorrelationIs(
         [1, -1, 1, -1, 1, -1, 1, -1],
-        [8, -7, 6, -5, 4, -3, 2, -1]
+        [8, -7, 6, -5, 4, -3, 2, -1],
       );
     });
   }

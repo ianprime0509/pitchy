@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,7 +9,9 @@
       body {
         background: #eee;
         color: #111;
-        font-family: system-ui, -apple-system;
+        font-family:
+          system-ui,
+          -apple-system;
         margin: 1rem auto;
         max-width: 80ch;
       }
@@ -82,11 +84,11 @@
           Math.round(pitch * 10) / 10
         } Hz`;
         document.getElementById("clarity").textContent = `${Math.round(
-          clarity * 100
+          clarity * 100,
         )} %`;
         window.setTimeout(
           () => updatePitch(analyserNode, detector, input, sampleRate),
-          100
+          100,
         );
       }
 

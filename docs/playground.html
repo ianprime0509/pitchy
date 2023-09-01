@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,7 +9,9 @@
       body {
         background: #eee;
         color: #111;
-        font-family: system-ui, -apple-system;
+        font-family:
+          system-ui,
+          -apple-system;
         margin: 1rem auto;
         max-width: 80ch;
       }
@@ -215,7 +217,7 @@
         lastClarityPercent = Math.round(lastClarityPercent * 1000) / 10;
 
         canvas.innerText = `Last pitch: ${lastPitch.toFixed(
-          1
+          1,
         )} Hz at ${lastClarityPercent.toFixed(1)}% clarity`;
 
         const filteredPitches = filteredHistory.map(([pitch]) => pitch);
@@ -238,7 +240,7 @@
           `${lastPitch.toFixed(1)} Hz (${lastClarityPercent.toFixed(1)}%)`,
           w / 2,
           headingHeight / 2,
-          w
+          w,
         );
 
         ctx.lineWidth = 1;
@@ -270,7 +272,7 @@
           `${lastPitch.toFixed(1)} Hz`,
           w - labelWidth,
           y(lastPitch),
-          labelWidth
+          labelWidth,
         );
       }
 
@@ -298,7 +300,7 @@
         sampleRate = analyserNode = inputBuffer = null;
         const actualSampleRate = document.getElementById("actual-sample-rate");
         const actualInputBufferSize = document.getElementById(
-          "actual-input-buffer-size"
+          "actual-input-buffer-size",
         );
         actualSampleRate.innerText = actualInputBufferSize.innerText = "Unset";
 
@@ -346,7 +348,7 @@
       });
 
       const overrideSampleRateInput = document.getElementById(
-        "override-sample-rate"
+        "override-sample-rate",
       );
       overrideSampleRateInput.addEventListener("change", () => {
         overrideSampleRate = overrideSampleRateInput.checked;
@@ -361,7 +363,7 @@
       });
 
       const minClarityPercentInput = document.getElementById(
-        "min-clarity-percent"
+        "min-clarity-percent",
       );
       minClarityPercentInput.addEventListener("change", () => {
         minClarityPercent = Number.parseFloat(minClarityPercentInput.value);
