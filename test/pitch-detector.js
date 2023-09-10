@@ -105,11 +105,11 @@ const test = suite("PitchDetector");
 test("constructor throws an error if the input length is too small", () => {
   assert.throws(
     () => new PitchDetector(0, (length) => new Float32Array(length)),
-    "Input length must be at least one"
+    "Input length must be at least one",
   );
   assert.throws(
     () => new PitchDetector(-5, (length) => new Float32Array(length)),
-    "Input length must be at least one"
+    "Input length must be at least one",
   );
 });
 
@@ -121,7 +121,7 @@ test("findPitch throws an error if the input is not of the configured input leng
   const detector = PitchDetector.forFloat32Array(8);
   assert.throws(
     () => detector.findPitch(Float32Array.of(1, 2, 3), 5),
-    "Input must have length 8 but had length 3"
+    "Input must have length 8 but had length 3",
   );
 });
 
@@ -149,7 +149,7 @@ function runTests(
   amplitude,
   frequency,
   sampleRate,
-  windowSize
+  windowSize,
 ) {
   /**
    * @param {ArrayLike<number>} input
@@ -162,7 +162,7 @@ function runTests(
   };
 
   const input = inputType.arrayConverter(
-    waveform.generator(windowSize, frequency, amplitude, sampleRate)
+    waveform.generator(windowSize, frequency, amplitude, sampleRate),
   );
 
   const [pitch, clarity] = findPitch(input, sampleRate);
@@ -171,18 +171,18 @@ function runTests(
     const percentError = (100 * Math.abs(pitch - frequency)) / frequency;
     assert.ok(
       percentError <= 1,
-      `expected pitch ${pitch} Hz to be within 1% of ${frequency} Hz`
+      `expected pitch ${pitch} Hz to be within 1% of ${frequency} Hz`,
     );
 
     const centsError = Math.abs(1200 * Math.log2(pitch / frequency));
     assert.ok(
       centsError <= waveform.maxCents,
-      `expected pitch ${pitch} Hz to be within ${centsError} of ${frequency} Hz`
+      `expected pitch ${pitch} Hz to be within ${centsError} of ${frequency} Hz`,
     );
 
     assert.ok(
       clarity >= waveform.minClarity,
-      `expected clarity ${clarity} to be at least ${waveform.minClarity}`
+      `expected clarity ${clarity} to be at least ${waveform.minClarity}`,
     );
     assert.ok(clarity <= 1.0, `expected clarity ${clarity} to be at most 1.0`);
   });
@@ -219,7 +219,7 @@ for (const waveform of waveforms) {
             amplitude,
             frequency,
             sampleRate,
-            inputSize
+            inputSize,
           );
         }
       }
