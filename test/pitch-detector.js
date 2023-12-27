@@ -117,6 +117,71 @@ test("inputLength returns the configured input length", () => {
   assert.equal(PitchDetector.forFloat32Array(10).inputLength, 10);
 });
 
+test("set clarityThreshold throws an error if the value is invalid", () => {
+  const detector = PitchDetector.forFloat32Array(8);
+  assert.throws(
+    () => (detector.clarityThreshold = NaN),
+    "clarityThreshold must be a number in the range (0, 1]",
+  );
+  assert.throws(
+    () => (detector.clarityThreshold = Infinity),
+    "clarityThreshold must be a number in the range (0, 1]",
+  );
+  assert.throws(
+    () => (detector.clarityThreshold = -1),
+    "clarityThreshold must be a number in the range (0, 1]",
+  );
+  assert.throws(
+    () => (detector.clarityThreshold = 0),
+    "clarityThreshold must be a number in the range (0, 1]",
+  );
+  assert.throws(
+    () => (detector.clarityThreshold = 2),
+    "clarityThreshold must be a number in the range (0, 1]",
+  );
+});
+
+test("set minVolumeAbsolute throws an error if the value is invalid", () => {
+  const detector = PitchDetector.forFloat32Array(8);
+  assert.throws(
+    () => (detector.minVolumeAbsolute = NaN),
+    "minVolumeAbsolute must be a number in the range [0, 1]",
+  );
+  assert.throws(
+    () => (detector.minVolumeAbsolute = Infinity),
+    "minVolumeAbsolute must be a number in the range [0, 1]",
+  );
+  assert.throws(
+    () => (detector.minVolumeAbsolute = -1),
+    "minVolumeAbsolute must be a number in the range [0, 1]",
+  );
+  assert.throws(
+    () => (detector.minVolumeAbsolute = 2),
+    "minVolumeAbsolute must be a number in the range [0, 1]",
+  );
+  detector.maxInputAmplitude = 5;
+  assert.throws(
+    () => (detector.minVolumeAbsolute = 10),
+    "minVolumeAbsolute must be a number in the range [0, 5]",
+  );
+});
+
+test("set minVolumeDecibels throws an error if the value is invalid", () => {
+  const detector = PitchDetector.forFloat32Array(8);
+  assert.throws(
+    () => (detector.minVolumeDecibels = NaN),
+    "minVolumeDecibels must be a number <= 0",
+  );
+  assert.throws(
+    () => (detector.minVolumeDecibels = Infinity),
+    "minVolumeDecibels must be a number <= 0",
+  );
+  assert.throws(
+    () => (detector.minVolumeDecibels = 1),
+    "minVolumeDecibels must be a number <= 0",
+  );
+});
+
 test("findPitch throws an error if the input is not of the configured input length", () => {
   const detector = PitchDetector.forFloat32Array(8);
   assert.throws(
@@ -129,6 +194,15 @@ test("findPitch returns a clarity of 0 when given an array of zeros", () => {
   const detector = float32InputType.supplier(2048);
   const zeros = new Float32Array(2048);
   assert.equal(detector.findPitch(zeros, 48000)[1], 0);
+});
+
+test("findPitch returns a clarity of 0 when given an input with low volume, if configured", () => {
+  const detector = float32InputType.supplier(2048);
+  detector.minVolumeAbsolute = 0.1;
+  const input = float32InputType.arrayConverter(
+    sineWave(2048, 440, 0.1, 44100),
+  );
+  assert.equal(detector.findPitch(input, 44100)[1], 0);
 });
 
 /**
@@ -158,6 +232,7 @@ function runTests(
    */
   const findPitch = (input, sampleRate) => {
     const detector = bufferType.supplier(input.length);
+    detector.minVolumeDecibels = -10;
     return detector.findPitch(input, sampleRate);
   };
 
@@ -202,7 +277,7 @@ for (const inputType of [float64InputType, numberArrayInputType]) {
 }
 
 for (const waveform of waveforms) {
-  for (const amplitude of [0.5, 1.0, 2.0]) {
+  for (const amplitude of [0.25, 0.5, 1.0]) {
     for (const frequency of [
       440, // A4
       880, // A5

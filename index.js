@@ -254,9 +254,12 @@ export class PitchDetector {
   _autocorrelator;
   /** @private @type {T} */
   _nsdfBuffer;
-  // TODO: it might be nice if this were configurable
-  /** @private @readonly */
+  /** @private @type {number} */
   _clarityThreshold = 0.9;
+  /** @private @type {number} */
+  _minVolumeAbsolute = 0.0;
+  /** @private @type {number} */
+  _maxInputAmplitude = 1.0;
 
   /**
    * A helper method to create an {@link PitchDetector} using {@link Float32Array} buffers.
@@ -314,6 +317,73 @@ export class PitchDetector {
   }
 
   /**
+   * Sets the clarity threshold used when identifying the correct pitch (the constant
+   * `k` from the MPM paper). The value must be between 0 (exclusive) and 1
+   * (inclusive), with the most suitable range being between 0.8 and 1.
+   *
+   * @param threshold {number} the clarity threshold
+   */
+  set clarityThreshold(threshold) {
+    if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 1) {
+      throw new Error("clarityThreshold must be a number in the range (0, 1]");
+    }
+    this._clarityThreshold = threshold;
+  }
+
+  /**
+   * Sets the minimum detectable volume, as an absolute number between 0 and
+   * `maxInputAmplitude`, inclusive, to consider in a sample when detecting the
+   * pitch. If a sample fails to meet this minimum volume, `findPitch` will
+   * return a clarity of 0.
+   *
+   * Volume is calculated as the RMS (root mean square) of the input samples.
+   *
+   * @param volume {number} the minimum volume as an absolute amplitude value
+   */
+  set minVolumeAbsolute(volume) {
+    if (
+      !Number.isFinite(volume) ||
+      volume < 0 ||
+      volume > this._maxInputAmplitude
+    ) {
+      throw new Error(
+        `minVolumeAbsolute must be a number in the range [0, ${this._maxInputAmplitude}]`,
+      );
+    }
+    this._minVolumeAbsolute = volume;
+  }
+
+  /**
+   * Sets the minimum volume using a decibel measurement. Must be less than or
+   * equal to 0: 0 indicates the loudest possible sound (see
+   * `maxInputAmplitude`), -10 is a sound with a tenth of the volume of the
+   * loudest possible sound, etc.
+   *
+   * Volume is calculated as the RMS (root mean square) of the input samples.
+   *
+   * @param db {number} the minimum volume in decibels, with 0 being the loudest
+   * sound
+   */
+  set minVolumeDecibels(db) {
+    if (!Number.isFinite(db) || db > 0) {
+      throw new Error("minVolumeDecibels must be a number <= 0");
+    }
+    this._minVolumeAbsolute = this._maxInputAmplitude * 10 ** (db / 10);
+  }
+
+  /**
+   * Sets the maximum amplitude of an input reading. Must be greater than 0.
+   *
+   * @param amplitude {number} the maximum amplitude (absolute value) of an input reading
+   */
+  set maxInputAmplitude(amplitude) {
+    if (!Number.isFinite(amplitude) || amplitude <= 0) {
+      throw new Error("maxInputAmplitude must be a number > 0");
+    }
+    this._maxInputAmplitude = amplitude;
+  }
+
+  /**
    * Returns the pitch detected using McLeod Pitch Method (MPM) along with a
    * measure of its clarity.
    *
@@ -325,9 +395,15 @@ export class PitchDetector {
    * @param input {ArrayLike<number>} the time-domain input data
    * @param sampleRate {number} the sample rate at which the input data was
    * collected
-   * @returns {[number, number]} the detected pitch, in Hz, followed by the clarity
+   * @returns {[number, number]} the detected pitch, in Hz, followed by the
+   * clarity. If a pitch cannot be determined from the input, such as if the
+   * volume is too low (see `minVolumeAbsolute` and `minVolumeDecibels`), this
+   * will be `[0, 0]`.
    */
   findPitch(input, sampleRate) {
+    // If the highest key maximum is less than the minimum volume, we don't need
+    // to bother detecting the pitch, as the sample is too quiet.
+    if (this._belowMinimumVolume(input)) return [0, 0];
     this._nsdf(input);
     const keyMaximumIndices = getKeyMaximumIndices(this._nsdfBuffer);
     if (keyMaximumIndices.length === 0) {
@@ -353,6 +429,23 @@ export class PitchDetector {
     // Due to floating point errors, the clarity may occasionally come out to be
     // slightly over 1.0. We can avoid incorrect results by clamping the value.
     return [sampleRate / refinedResultIndex, Math.min(clarity, 1.0)];
+  }
+
+  /**
+   * Returns whether the input audio data is below the minimum volume allowed by
+   * the pitch detector.
+   *
+   * @private
+   * @param input {ArrayLike<number>}
+   * @returns {boolean}
+   */
+  _belowMinimumVolume(input) {
+    if (this._minVolumeAbsolute === 0) return false;
+    let squareSum = 0;
+    for (let i = 0; i < input.length; i++) {
+      squareSum += input[i] ** 2;
+    }
+    return Math.sqrt(squareSum / input.length) < this._minVolumeAbsolute;
   }
 
   /**

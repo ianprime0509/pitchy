@@ -139,6 +139,13 @@
 
         <div class="row">
           <label
+            >Minimum volume (dB):
+            <input id="min-volume-decibels" type="number" max="0" value="-10"
+          /></label>
+        </div>
+
+        <div class="row">
+          <label
             >Minimum clarity (%):
             <input
               id="min-clarity-percent"
@@ -173,6 +180,7 @@
       const history = [];
       let historyLength = 100;
 
+      let minVolumeDecibels = -10;
       let minClarityPercent = 95;
       let [minPitch, maxPitch] = [60, 10000];
 
@@ -317,6 +325,7 @@
         });
         audioContext.createMediaStreamSource(micStream).connect(analyserNode);
         detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
+        detector.minVolumeDecibels = minVolumeDecibels;
         inputBuffer = new Float32Array(detector.inputLength);
         actualInputBufferSize.innerText = inputBuffer.length.toFixed();
       }
@@ -360,6 +369,14 @@
       inputBufferSizeInput.addEventListener("change", () => {
         inputBufferSize = Number.parseFloat(inputBufferSizeInput.value);
         resetAudioContext();
+      });
+
+      const minVolumeDecibelsInput = document.getElementById(
+        "min-volume-decibels",
+      );
+      minVolumeDecibelsInput.addEventListener("change", () => {
+        minVolumeDecibels = Number.parseFloat(minVolumeDecibelsInput.value);
+        if (detector) detector.minVolumeDecibels = minVolumeDecibels;
       });
 
       const minClarityPercentInput = document.getElementById(
