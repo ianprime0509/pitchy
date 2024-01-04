@@ -2,10 +2,7 @@
   "name": "pitchy",
   "description": "A simple pitch detection library.",
   "version": "0.0.0",
-  "files": [
-    "index.d.ts",
-    "index.js"
-  ],
+  "files": ["index.d.ts", "index.js"],
   "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
@@ -33,17 +30,12 @@
     "type": "git",
     "url": "git+https://github.com/ianprime0509/pitchy.git"
   },
-  "keywords": [
-    "pitch",
-    "detection",
-    "music",
-    "dsp"
-  ],
+  "keywords": ["pitch", "detection", "music", "dsp"],
   "author": {
     "name": "Ian Johnson",
     "email": "ian@ianjohnson.dev"
   },
-  "license": "MIT",
+  "license": "0BSD",
   "bugs": {
     "url": "https://github.com/ianprime0509/pitchy/issues"
   },
