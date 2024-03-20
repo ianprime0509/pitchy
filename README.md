@@ -19,18 +19,24 @@ There are several implications of this for using various build and test tools: a
 gives a more detailed overview (including suggestions for various tools) than
 what can be covered in this README. The short version is that you may want to
 consider migrating your own project to ES modules. If all else fails, you can
-continue to use v3, as v4 contains no functional changes.
+continue to use v3, as v4 contains only minor functional changes.
 
 ## Installation
 
-You can install pitchy using NPM (or similar tools such as Yarn):
+Pitchy can be installed using NPM (or similar tools such as Yarn):
 
 ```shell
 npm install pitchy
 ```
 
-You can also use a CDN, such as [esm.sh](https://esm.sh), directly from a
-browser or Deno:
+After installing, it can be used via an ES module import:
+
+```js
+import { PitchDetector } from "pitchy";
+```
+
+It is also possible to use a CDN, such as [esm.sh](https://esm.sh), directly
+from a browser or Deno:
 
 ```js
 import { PitchDetector } from "https://esm.sh/pitchy@4";
